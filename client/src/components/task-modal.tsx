@@ -276,42 +276,78 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>Start Date</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" className="w-full justify-start text-left">
-                      <CalendarIcon className="w-4 h-4 mr-2" />
-                      {startDate ? startDate.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: '2-digit' }) : "Select date"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar
-                      mode="single"
-                      selected={startDate}
-                      onSelect={setStartDate}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
+                <div className="flex gap-2">
+                  <Input
+                    type="text"
+                    placeholder="DD/MM/YY"
+                    value={startDate ? startDate.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: '2-digit' }) : ""}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (value.match(/^\d{2}\/\d{2}\/\d{2}$/)) {
+                        const [day, month, year] = value.split('/');
+                        const fullYear = parseInt(year) + 2000;
+                        const date = new Date(fullYear, parseInt(month) - 1, parseInt(day));
+                        if (!isNaN(date.getTime())) {
+                          setStartDate(date);
+                        }
+                      }
+                    }}
+                    className="flex-1"
+                  />
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" size="icon">
+                        <CalendarIcon className="w-4 h-4" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar
+                        mode="single"
+                        selected={startDate}
+                        onSelect={setStartDate}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
               </div>
               
               <div>
                 <Label>End Date</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" className="w-full justify-start text-left">
-                      <CalendarIcon className="w-4 h-4 mr-2" />
-                      {endDate ? endDate.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: '2-digit' }) : "Select date"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar
-                      mode="single"
-                      selected={endDate}
-                      onSelect={setEndDate}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
+                <div className="flex gap-2">
+                  <Input
+                    type="text"
+                    placeholder="DD/MM/YY"
+                    value={endDate ? endDate.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: '2-digit' }) : ""}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (value.match(/^\d{2}\/\d{2}\/\d{2}$/)) {
+                        const [day, month, year] = value.split('/');
+                        const fullYear = parseInt(year) + 2000;
+                        const date = new Date(fullYear, parseInt(month) - 1, parseInt(day));
+                        if (!isNaN(date.getTime())) {
+                          setEndDate(date);
+                        }
+                      }
+                    }}
+                    className="flex-1"
+                  />
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" size="icon">
+                        <CalendarIcon className="w-4 h-4" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar
+                        mode="single"
+                        selected={endDate}
+                        onSelect={setEndDate}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
               </div>
             </div>
           )}

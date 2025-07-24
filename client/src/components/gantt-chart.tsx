@@ -30,10 +30,13 @@ export function GanttChart({ project, timelineScale, showWeekends, onEditTask, o
     const startDate = start.toISOString().split('T')[0];
     const endDate = end.toISOString().split('T')[0];
     
+    // Calculate duration including weekends for now
+    const duration = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+    
     onTaskUpdate(id, { 
       startDate, 
       endDate,
-      duration: Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
+      duration
     });
   };
 
@@ -74,6 +77,19 @@ export function GanttChart({ project, timelineScale, showWeekends, onEditTask, o
           handleProgressChange(task.id, progress);
         }
       });
+      
+      // Apply custom colors after initialization
+      setTimeout(() => {
+        project.tasks.forEach((task, index) => {
+          const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#84cc16', '#f97316', '#ec4899', '#6366f1'];
+          const color = colors[index % colors.length];
+          const taskBar = ganttRef.current?.querySelector(`[data-id="${task.id}"] .bar`);
+          if (taskBar) {
+            (taskBar as HTMLElement).style.backgroundColor = color;
+          }
+        });
+      }, 100);
+      
     } catch (error) {
       console.error('Failed to initialize Gantt chart:', error);
     }
