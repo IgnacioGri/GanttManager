@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { ZoomOut, ZoomIn, Maximize, MessageCircle, Paperclip, Edit3 } from "lucide-react";
+import { ZoomOut, ZoomIn, Maximize, MessageCircle, Paperclip, Edit3, Trash2 } from "lucide-react";
 import { createGanttTasks } from "@/lib/gantt-utils";
 import type { ProjectWithTasks, Task } from "@shared/schema";
 
@@ -11,6 +11,7 @@ interface GanttChartProps {
   onEditTask: (task: Task) => void;
   onAddComment: (task: Task) => void;
   onTaskUpdate: (taskId: number, updates: Partial<Task>) => void;
+  onDeleteTask: (taskId: number) => void;
   isCollapsed: boolean;
 }
 
@@ -20,7 +21,7 @@ declare global {
   }
 }
 
-export function GanttChart({ project, timelineScale, showWeekends, onEditTask, onAddComment, onTaskUpdate, isCollapsed }: GanttChartProps) {
+export function GanttChart({ project, timelineScale, showWeekends, onEditTask, onAddComment, onTaskUpdate, onDeleteTask, isCollapsed }: GanttChartProps) {
   const ganttRef = useRef<HTMLDivElement>(null);
   const ganttInstance = useRef<any>(null);
 
@@ -158,6 +159,15 @@ export function GanttChart({ project, timelineScale, showWeekends, onEditTask, o
                         onClick={() => onEditTask(task)}
                       >
                         <Edit3 className="w-3 h-3" />
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="w-5 h-5 text-slate-400 hover:text-red-500"
+                        onClick={() => onDeleteTask(task.id)}
+                        title="Delete task"
+                      >
+                        <Trash2 className="w-3 h-3" />
                       </Button>
                     </div>
                   </div>

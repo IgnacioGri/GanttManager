@@ -119,6 +119,35 @@ export default function Home() {
     }
   };
 
+  const handleDeleteTask = async (taskId: number) => {
+    if (!confirm("Are you sure you want to delete this task?")) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/tasks/${taskId}`, {
+        method: 'DELETE',
+      });
+      
+      if (!response.ok) throw new Error('Failed to delete task');
+      
+      // Refetch project data to update UI
+      queryClient.invalidateQueries({ queryKey: ["/api/projects", projectId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
+      
+      toast({
+        title: "Task Deleted",
+        description: "Task has been successfully deleted.",
+      });
+    } catch (error) {
+      toast({
+        title: "Delete Failed",
+        description: "Failed to delete task.",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -165,6 +194,7 @@ export default function Home() {
             onEditTask={handleEditTask}
             onAddComment={handleAddComment}
             onTaskUpdate={handleTaskUpdate}
+            onDeleteTask={handleDeleteTask}
             isCollapsed={isSidebarCollapsed}
           />
         </main>
