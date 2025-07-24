@@ -69,18 +69,18 @@
 
 .gantt-container .gantt-task {
   cursor: pointer;
-  height: 48px !important; /* Match the h-12 class (48px) */
+  height: 52px !important; /* Slightly taller for better alignment */
 }
 
 .gantt-container .gantt-task-bar {
   border-radius: 4px;
-  height: 24px !important;
+  height: 28px !important;
   margin-top: 12px !important; /* Center the bar vertically */
 }
 
 .gantt-container .gantt-task-bar-progress {
   border-radius: 4px;
-  height: 24px !important;
+  height: 28px !important;
 }
 
 .gantt-container .gantt-header {
@@ -93,12 +93,24 @@
 }
 
 .gantt-container .gantt-grid-row {
-  height: 48px !important; /* Match task row height */
+  height: 52px !important; /* Match task row height */
 }
 
 .gantt-container .gantt-grid-header-cell {
-  height: 48px !important;
+  height: 52px !important;
 }
+
+/* Task bar colors based on task ID */
+.gantt-container .gantt-task-bar[data-task-id="1"] { background-color: #3b82f6 !important; }
+.gantt-container .gantt-task-bar[data-task-id="2"] { background-color: #10b981 !important; }
+.gantt-container .gantt-task-bar[data-task-id="3"] { background-color: #f59e0b !important; }
+.gantt-container .gantt-task-bar[data-task-id="4"] { background-color: #ef4444 !important; }
+.gantt-container .gantt-task-bar[data-task-id="5"] { background-color: #8b5cf6 !important; }
+.gantt-container .gantt-task-bar[data-task-id="6"] { background-color: #06b6d4 !important; }
+.gantt-container .gantt-task-bar[data-task-id="7"] { background-color: #84cc16 !important; }
+.gantt-container .gantt-task-bar[data-task-id="8"] { background-color: #f97316 !important; }
+.gantt-container .gantt-task-bar[data-task-id="9"] { background-color: #ec4899 !important; }
+.gantt-container .gantt-task-bar[data-task-id="10"] { background-color: #6366f1 !important; }
 
 /* Custom scrollbar */
 .gantt-container::-webkit-scrollbar {

@@ -11,6 +11,7 @@ interface GanttChartProps {
   onEditTask: (task: Task) => void;
   onAddComment: (task: Task) => void;
   onTaskUpdate: (taskId: number, updates: Partial<Task>) => void;
+  isCollapsed: boolean;
 }
 
 declare global {
@@ -19,7 +20,7 @@ declare global {
   }
 }
 
-export function GanttChart({ project, timelineScale, showWeekends, onEditTask, onAddComment, onTaskUpdate }: GanttChartProps) {
+export function GanttChart({ project, timelineScale, showWeekends, onEditTask, onAddComment, onTaskUpdate, isCollapsed }: GanttChartProps) {
   const ganttRef = useRef<HTMLDivElement>(null);
   const ganttInstance = useRef<any>(null);
 
@@ -113,13 +114,13 @@ export function GanttChart({ project, timelineScale, showWeekends, onEditTask, o
 
       <div className="flex-1 bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden relative">
         {/* Task list on the left */}
-        <div className="absolute top-0 left-0 w-80 bg-white border-r border-slate-200 h-full overflow-y-auto z-10">
-          <div className="border-b border-slate-200 bg-slate-50 px-4 py-3 sticky top-0">
+        <div className={`absolute top-0 left-0 ${isCollapsed ? 'w-20' : 'w-80'} bg-white border-r border-slate-200 h-full overflow-y-auto z-10 transition-all duration-300`}>
+          <div className="border-b border-slate-200 bg-slate-50 px-4 py-3 sticky top-0 h-[52px] flex items-center">
             <span className="text-sm font-medium text-slate-700">Task Name</span>
           </div>
           {project.tasks.map((task, index) => (
             <div key={task.id} className="border-b border-slate-100 hover:bg-slate-50 group">
-              <div className="px-3 py-2 h-12 flex items-center text-sm">
+              <div className="px-3 py-2 h-[52px] flex items-center text-sm">
                 <div className="flex items-center justify-between w-full">
                   <div className="flex-1 min-w-0">
                     <div 
@@ -166,7 +167,7 @@ export function GanttChart({ project, timelineScale, showWeekends, onEditTask, o
         </div>
         
         {/* Gantt chart container */}
-        <div className="ml-80 h-full">
+        <div className={`${isCollapsed ? 'ml-20' : 'ml-80'} h-full transition-all duration-300`}>
           <div ref={ganttRef} className="gantt-container h-full overflow-auto"></div>
         </div>
       </div>

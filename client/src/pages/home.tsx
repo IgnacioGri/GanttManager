@@ -27,6 +27,7 @@ export default function Home() {
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [timelineScale, setTimelineScale] = useState<"Day" | "Week" | "Month">("Week");
   const [showWeekends, setShowWeekends] = useState(true);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   const { data: project, isLoading } = useQuery<ProjectWithTasks>({
     queryKey: ["/api/projects", projectId],
@@ -152,6 +153,8 @@ export default function Home() {
           onShowProjects={() => setIsProjectListOpen(true)}
           onExportExcel={handleExportToExcel}
           projects={projects || []}
+          isCollapsed={isSidebarCollapsed}
+          onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
         />
         
         <main className="flex-1 p-6 overflow-auto">
@@ -162,6 +165,7 @@ export default function Home() {
             onEditTask={handleEditTask}
             onAddComment={handleAddComment}
             onTaskUpdate={handleTaskUpdate}
+            isCollapsed={isSidebarCollapsed}
           />
         </main>
       </div>
