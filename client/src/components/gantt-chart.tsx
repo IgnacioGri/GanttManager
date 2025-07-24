@@ -43,6 +43,25 @@ export function GanttChart({ project, timelineScale, showWeekends, onEditTask, o
   const handleProgressChange = (taskId: string, progress: number) => {
     const id = parseInt(taskId);
     onTaskUpdate(id, { progress });
+    
+    // Update bar opacity immediately
+    setTimeout(() => {
+      const task = project?.tasks.find(t => t.id === id);
+      if (task) {
+        const index = project?.tasks.findIndex(t => t.id === id) || 0;
+        const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#84cc16', '#f97316', '#ec4899', '#6366f1'];
+        const baseColor = colors[index % colors.length];
+        const opacity = 1.0 - (progress / 100) * 0.7;
+        
+        const taskBar = ganttRef.current?.querySelector(`[data-id="${taskId}"] .bar`);
+        if (taskBar) {
+          const r = parseInt(baseColor.slice(1, 3), 16);
+          const g = parseInt(baseColor.slice(3, 5), 16);
+          const b = parseInt(baseColor.slice(5, 7), 16);
+          (taskBar as HTMLElement).style.backgroundColor = `rgba(${r}, ${g}, ${b}, ${opacity})`;
+        }
+      }
+    }, 50);
   };
 
   useEffect(() => {
@@ -78,14 +97,22 @@ export function GanttChart({ project, timelineScale, showWeekends, onEditTask, o
         }
       });
       
-      // Apply custom colors after initialization
+      // Apply custom colors with progress-based transparency after initialization
       setTimeout(() => {
         project.tasks.forEach((task, index) => {
           const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#84cc16', '#f97316', '#ec4899', '#6366f1'];
-          const color = colors[index % colors.length];
+          const baseColor = colors[index % colors.length];
+          
+          // Calculate opacity based on progress: 0% = solid (1.0), 100% = very transparent (0.3)
+          const opacity = 1.0 - (task.progress / 100) * 0.7;
+          
           const taskBar = ganttRef.current?.querySelector(`[data-id="${task.id}"] .bar`);
           if (taskBar) {
-            (taskBar as HTMLElement).style.backgroundColor = color;
+            // Convert hex to rgba with calculated opacity
+            const r = parseInt(baseColor.slice(1, 3), 16);
+            const g = parseInt(baseColor.slice(3, 5), 16);
+            const b = parseInt(baseColor.slice(5, 7), 16);
+            (taskBar as HTMLElement).style.backgroundColor = `rgba(${r}, ${g}, ${b}, ${opacity})`;
           }
         });
       }, 100);
