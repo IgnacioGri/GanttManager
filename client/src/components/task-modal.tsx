@@ -280,7 +280,7 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
                   <PopoverTrigger asChild>
                     <Button variant="outline" className="w-full justify-start text-left">
                       <CalendarIcon className="w-4 h-4 mr-2" />
-                      {startDate ? startDate.toLocaleDateString() : "Select date"}
+                      {startDate ? startDate.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: '2-digit' }) : "Select date"}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0">
@@ -300,7 +300,7 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
                   <PopoverTrigger asChild>
                     <Button variant="outline" className="w-full justify-start text-left">
                       <CalendarIcon className="w-4 h-4 mr-2" />
-                      {endDate ? endDate.toLocaleDateString() : "Select date"}
+                      {endDate ? endDate.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: '2-digit' }) : "Select date"}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0">

@@ -134,9 +134,9 @@ export function GanttChart({ project, timelineScale, showWeekends, onEditTask, o
                     </div>
                   </div>
                   <div className="flex items-center space-x-2 text-xs text-slate-500 whitespace-nowrap">
-                    <span>{new Date(task.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                    <span>{new Date(task.startDate).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: '2-digit' })}</span>
                     <span>-</span>
-                    <span>{new Date(task.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                    <span>{new Date(task.endDate).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: '2-digit' })}</span>
                     <div className="flex items-center space-x-1 ml-2 opacity-0 group-hover:opacity-100 transition-opacity">
                       {task.comments && (
                         <div className="w-2 h-2 bg-blue-500 rounded-full" title="Has comments" />
