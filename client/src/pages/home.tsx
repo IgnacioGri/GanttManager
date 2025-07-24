@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams } from "wouter";
+import { useParams, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Plus, FolderOpen, Download, Settings } from "lucide-react";
@@ -8,6 +8,7 @@ import { GanttChart } from "@/components/gantt-chart";
 import { TaskModal } from "@/components/task-modal";
 import { CommentsModal } from "@/components/comments-modal";
 import { ProjectListModal } from "@/components/project-list-modal";
+import { ProjectModal } from "@/components/project-modal";
 import { exportToExcel } from "@/lib/excel-export";
 import { useToast } from "@/hooks/use-toast";
 import type { ProjectWithTasks, Task } from "@shared/schema";
@@ -16,10 +17,12 @@ export default function Home() {
   const { id } = useParams();
   const projectId = id ? parseInt(id) : null;
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
   
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [isCommentsModalOpen, setIsCommentsModalOpen] = useState(false);
   const [isProjectListOpen, setIsProjectListOpen] = useState(false);
+  const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [timelineScale, setTimelineScale] = useState<"Day" | "Week" | "Month">("Week");
   const [showWeekends, setShowWeekends] = useState(true);
@@ -33,12 +36,15 @@ export default function Home() {
     queryKey: ["/api/projects"],
   });
 
+  // Auto-redirect to first project if no project is selected
+  useEffect(() => {
+    if (!projectId && projects && projects.length > 0) {
+      setLocation(`/project/${projects[0].id}`);
+    }
+  }, [projectId, projects, setLocation]);
+
   const handleNewProject = () => {
-    // For now, we'll just show a placeholder
-    toast({
-      title: "New Project",
-      description: "Project creation functionality will be available soon.",
-    });
+    setIsProjectModalOpen(true);
   };
 
   const handleExportToExcel = async () => {
@@ -175,6 +181,11 @@ export default function Home() {
         isOpen={isProjectListOpen}
         onClose={() => setIsProjectListOpen(false)}
         projects={projects || []}
+      />
+
+      <ProjectModal
+        isOpen={isProjectModalOpen}
+        onClose={() => setIsProjectModalOpen(false)}
       />
     </div>
   );

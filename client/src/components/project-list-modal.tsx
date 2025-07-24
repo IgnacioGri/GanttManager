@@ -36,7 +36,7 @@ export function ProjectListModal({ isOpen, onClose, projects }: ProjectListModal
   });
 
   const calculateProgress = (project: ProjectWithTasks) => {
-    if (!project.tasks.length) return 0;
+    if (!project.tasks || !project.tasks.length) return 0;
     const totalProgress = project.tasks.reduce((sum, task) => sum + task.progress, 0);
     return Math.round(totalProgress / project.tasks.length);
   };
@@ -100,7 +100,7 @@ export function ProjectListModal({ isOpen, onClose, projects }: ProjectListModal
                     <div className="flex-1">
                       <div className="font-medium text-slate-900">{project.name}</div>
                       <div className="text-sm text-slate-600">
-                        {project.tasks.length} tasks • {progress}% complete
+                        {project.tasks?.length || 0} tasks • {progress}% complete
                       </div>
                       <div className="text-xs text-slate-500 mt-1">
                         Last modified: {formatRelativeTime(new Date(project.updatedAt))}

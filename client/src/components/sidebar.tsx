@@ -26,7 +26,7 @@ export function Sidebar({
   projects 
 }: SidebarProps) {
   const calculateProgress = (project?: ProjectWithTasks) => {
-    if (!project?.tasks.length) return 0;
+    if (!project?.tasks || !project.tasks.length) return 0;
     const totalProgress = project.tasks.reduce((sum, task) => sum + task.progress, 0);
     return Math.round(totalProgress / project.tasks.length);
   };
@@ -106,7 +106,7 @@ export function Sidebar({
               <div className="p-3 border border-slate-200 rounded-lg hover:bg-slate-50 cursor-pointer transition-colors">
                 <div className="text-sm font-medium text-slate-900">{proj.name}</div>
                 <div className="text-xs text-slate-500">
-                  {proj.tasks.length} tasks • {calculateProgress(proj)}% complete
+                  {proj.tasks?.length || 0} tasks • {calculateProgress(proj)}% complete
                 </div>
               </div>
             </Link>

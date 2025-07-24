@@ -28,6 +28,124 @@ export class MemStorage implements IStorage {
     this.tasks = new Map();
     this.currentProjectId = 1;
     this.currentTaskId = 1;
+    this.initializeSampleData();
+  }
+
+  private initializeSampleData() {
+    // Create sample project
+    const sampleProject: Project = {
+      id: 1,
+      name: "Website Development Project",
+      startDate: "2024-01-15",
+      endDate: "2024-03-15",
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.projects.set(1, sampleProject);
+    this.currentProjectId = 2;
+
+    // Create sample tasks
+    const sampleTasks: Task[] = [
+      {
+        id: 1,
+        projectId: 1,
+        name: "Project Planning & Requirements",
+        startDate: "2024-01-15",
+        endDate: "2024-01-22",
+        duration: 5,
+        progress: 100,
+        dependencies: [],
+        comments: "Initial project setup and requirement gathering completed successfully.",
+        attachments: [],
+        skipWeekends: true,
+        autoAdjustWeekends: true,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      {
+        id: 2,
+        projectId: 1,
+        name: "UI/UX Design",
+        startDate: "2024-01-23",
+        endDate: "2024-02-05",
+        duration: 10,
+        progress: 75,
+        dependencies: ["1"],
+        comments: "Design mockups are 75% complete. Need client feedback on color scheme.",
+        attachments: [],
+        skipWeekends: true,
+        autoAdjustWeekends: true,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      {
+        id: 3,
+        projectId: 1,
+        name: "Frontend Development",
+        startDate: "2024-02-06",
+        endDate: "2024-02-26",
+        duration: 15,
+        progress: 45,
+        dependencies: ["2"],
+        comments: "Started implementing responsive layouts. Making good progress.",
+        attachments: [],
+        skipWeekends: true,
+        autoAdjustWeekends: true,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      {
+        id: 4,
+        projectId: 1,
+        name: "Backend Development",
+        startDate: "2024-02-12",
+        endDate: "2024-03-05",
+        duration: 15,
+        progress: 30,
+        dependencies: ["1"],
+        comments: "API endpoints development in progress. Database schema finalized.",
+        attachments: [],
+        skipWeekends: true,
+        autoAdjustWeekends: true,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      {
+        id: 5,
+        projectId: 1,
+        name: "Testing & QA",
+        startDate: "2024-02-27",
+        endDate: "2024-03-10",
+        duration: 8,
+        progress: 0,
+        dependencies: ["3", "4"],
+        comments: "",
+        attachments: [],
+        skipWeekends: true,
+        autoAdjustWeekends: true,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      {
+        id: 6,
+        projectId: 1,
+        name: "Deployment & Launch",
+        startDate: "2024-03-11",
+        endDate: "2024-03-15",
+        duration: 3,
+        progress: 0,
+        dependencies: ["5"],
+        comments: "",
+        attachments: [],
+        skipWeekends: true,
+        autoAdjustWeekends: true,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
+    ];
+
+    sampleTasks.forEach(task => this.tasks.set(task.id, task));
+    this.currentTaskId = 7;
   }
 
   // Projects

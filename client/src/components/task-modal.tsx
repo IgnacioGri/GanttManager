@@ -7,12 +7,13 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CalendarIcon, Upload, X } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { adjustDateForWeekends, formatDateForInput, parseInputDate } from "@/lib/date-utils";
+import { adjustDateForWeekends, formatDateForInput, parseInputDate, addBusinessDays } from "@/lib/date-utils";
 import type { Task, ProjectWithTasks } from "@shared/schema";
 
 interface TaskModalProps {
@@ -33,6 +34,9 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
   const [duration, setDuration] = useState(1);
   const [progress, setProgress] = useState([0]);
   const [dependencies, setDependencies] = useState<string[]>([]);
+  const [dependencyType, setDependencyType] = useState<"manual" | "dependent">("manual");
+  const [dependentTaskId, setDependentTaskId] = useState<string>("");
+  const [offsetDays, setOffsetDays] = useState(0);
   const [skipWeekends, setSkipWeekends] = useState(true);
   const [autoAdjustWeekends, setAutoAdjustWeekends] = useState(true);
   const [attachments, setAttachments] = useState<any[]>([]);
@@ -78,6 +82,9 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
       setSkipWeekends(task.skipWeekends);
       setAutoAdjustWeekends(task.autoAdjustWeekends);
       setAttachments(task.attachments);
+      setDependencyType("manual");
+      setDependentTaskId("");
+      setOffsetDays(0);
     } else {
       // Reset form for new task
       setName("");
@@ -86,6 +93,9 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
       setDuration(1);
       setProgress([0]);
       setDependencies([]);
+      setDependencyType("manual");
+      setDependentTaskId("");
+      setOffsetDays(0);
       setSkipWeekends(true);
       setAutoAdjustWeekends(true);
       setAttachments([]);
@@ -121,6 +131,42 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
     setAttachments(prev => prev.filter((_, i) => i !== index));
   };
 
+  // Calculate dates based on dependency
+  useEffect(() => {
+    if (dependencyType === "dependent" && dependentTaskId && project) {
+      const dependentTask = project.tasks.find(t => t.id.toString() === dependentTaskId);
+      if (dependentTask) {
+        const depEndDate = parseInputDate(dependentTask.endDate);
+        let calculatedStartDate = new Date(depEndDate);
+        
+        // Add offset days
+        if (offsetDays > 0) {
+          if (skipWeekends) {
+            calculatedStartDate = addBusinessDays(calculatedStartDate, offsetDays);
+          } else {
+            calculatedStartDate.setDate(calculatedStartDate.getDate() + offsetDays);
+          }
+        }
+        
+        // Auto-adjust for weekends if enabled
+        if (autoAdjustWeekends) {
+          calculatedStartDate = adjustDateForWeekends(calculatedStartDate);
+        }
+        
+        setStartDate(calculatedStartDate);
+        
+        // Calculate end date based on duration
+        let calculatedEndDate = new Date(calculatedStartDate);
+        if (skipWeekends) {
+          calculatedEndDate = addBusinessDays(calculatedStartDate, duration - 1);
+        } else {
+          calculatedEndDate.setDate(calculatedStartDate.getDate() + duration - 1);
+        }
+        setEndDate(calculatedEndDate);
+      }
+    }
+  }, [dependencyType, dependentTaskId, offsetDays, duration, skipWeekends, autoAdjustWeekends, project]);
+
   const handleSave = () => {
     if (!name || !startDate || !endDate || !projectId) {
       toast({ title: "Please fill in all required fields", variant: "destructive" });
@@ -128,8 +174,14 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
     }
 
     let adjustedStartDate = startDate;
-    if (autoAdjustWeekends) {
+    if (autoAdjustWeekends && dependencyType === "manual") {
       adjustedStartDate = adjustDateForWeekends(startDate);
+    }
+
+    // Set dependencies based on type
+    let finalDependencies = dependencies;
+    if (dependencyType === "dependent" && dependentTaskId) {
+      finalDependencies = [dependentTaskId];
     }
 
     const taskData = {
@@ -139,7 +191,7 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
       endDate: formatDateForInput(endDate),
       duration,
       progress: progress[0],
-      dependencies,
+      dependencies: finalDependencies,
       comments: "",
       attachments,
       skipWeekends,
@@ -171,47 +223,111 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label>Start Date</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className="w-full justify-start text-left">
-                    <CalendarIcon className="w-4 h-4 mr-2" />
-                    {startDate ? startDate.toLocaleDateString() : "Select date"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={startDate}
-                    onSelect={setStartDate}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-            
-            <div>
-              <Label>End Date</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className="w-full justify-start text-left">
-                    <CalendarIcon className="w-4 h-4 mr-2" />
-                    {endDate ? endDate.toLocaleDateString() : "Select date"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={endDate}
-                    onSelect={setEndDate}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
+          <div>
+            <Label>Date Configuration</Label>
+            <RadioGroup value={dependencyType} onValueChange={(value) => setDependencyType(value as "manual" | "dependent")}>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="manual" id="manual" />
+                <Label htmlFor="manual">Manual date selection</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="dependent" id="dependent" />
+                <Label htmlFor="dependent">Start after another task</Label>
+              </div>
+            </RadioGroup>
           </div>
+
+          {dependencyType === "dependent" && (
+            <div className="space-y-4 bg-slate-50 p-4 rounded-lg">
+              <div>
+                <Label>Depends on Task</Label>
+                <Select value={dependentTaskId} onValueChange={setDependentTaskId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a task" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {project?.tasks.filter(t => t.id !== task?.id).map((t) => (
+                      <SelectItem key={t.id} value={t.id.toString()}>
+                        {t.name} (ends {t.endDate})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div>
+                <Label htmlFor="offsetDays">Additional days after task completion</Label>
+                <Input
+                  id="offsetDays"
+                  type="number"
+                  value={offsetDays}
+                  onChange={(e) => setOffsetDays(parseInt(e.target.value) || 0)}
+                  min="0"
+                  placeholder="0"
+                />
+                <p className="text-xs text-slate-500 mt-1">
+                  Task will start {offsetDays} day(s) after the selected task ends
+                </p>
+              </div>
+            </div>
+          )}
+
+          {dependencyType === "manual" && (
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Start Date</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="w-full justify-start text-left">
+                      <CalendarIcon className="w-4 h-4 mr-2" />
+                      {startDate ? startDate.toLocaleDateString() : "Select date"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar
+                      mode="single"
+                      selected={startDate}
+                      onSelect={setStartDate}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+              
+              <div>
+                <Label>End Date</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="w-full justify-start text-left">
+                      <CalendarIcon className="w-4 h-4 mr-2" />
+                      {endDate ? endDate.toLocaleDateString() : "Select date"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar
+                      mode="single"
+                      selected={endDate}
+                      onSelect={setEndDate}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </div>
+          )}
+
+          {dependencyType === "dependent" && startDate && endDate && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <p className="text-sm text-blue-700">
+                <strong>Calculated dates:</strong> {startDate.toLocaleDateString()} to {endDate.toLocaleDateString()}
+              </p>
+              {autoAdjustWeekends && (
+                <p className="text-xs text-blue-600 mt-1">
+                  Dates automatically adjusted to avoid weekends
+                </p>
+              )}
+            </div>
+          )}
 
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -240,21 +356,7 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
             </div>
           </div>
 
-          <div>
-            <Label>Dependencies</Label>
-            <Select>
-              <SelectTrigger>
-                <SelectValue placeholder="Select dependencies" />
-              </SelectTrigger>
-              <SelectContent>
-                {project?.tasks.filter(t => t.id !== task?.id).map((t) => (
-                  <SelectItem key={t.id} value={t.id.toString()}>
-                    {t.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+
 
           <div>
             <Label>Attachments</Label>
