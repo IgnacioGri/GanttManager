@@ -10,6 +10,7 @@ interface GanttChartProps {
   showWeekends: boolean;
   onEditTask: (task: Task) => void;
   onAddComment: (task: Task) => void;
+  onTaskUpdate: (taskId: number, updates: Partial<Task>) => void;
 }
 
 declare global {
@@ -18,9 +19,26 @@ declare global {
   }
 }
 
-export function GanttChart({ project, timelineScale, showWeekends, onEditTask, onAddComment }: GanttChartProps) {
+export function GanttChart({ project, timelineScale, showWeekends, onEditTask, onAddComment, onTaskUpdate }: GanttChartProps) {
   const ganttRef = useRef<HTMLDivElement>(null);
   const ganttInstance = useRef<any>(null);
+
+  const handleDateChange = (taskId: string, start: Date, end: Date) => {
+    const id = parseInt(taskId);
+    const startDate = start.toISOString().split('T')[0];
+    const endDate = end.toISOString().split('T')[0];
+    
+    onTaskUpdate(id, { 
+      startDate, 
+      endDate,
+      duration: Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
+    });
+  };
+
+  const handleProgressChange = (taskId: string, progress: number) => {
+    const id = parseInt(taskId);
+    onTaskUpdate(id, { progress });
+  };
 
   useEffect(() => {
     if (!ganttRef.current || !project?.tasks.length) return;
@@ -46,12 +64,12 @@ export function GanttChart({ project, timelineScale, showWeekends, onEditTask, o
           }
         },
         on_date_change: (task: any, start: Date, end: Date) => {
-          // Handle date changes
-          console.log('Date changed:', task, start, end);
+          // Update task dates when dragged in Gantt
+          handleDateChange(task.id, start, end);
         },
         on_progress_change: (task: any, progress: number) => {
-          // Handle progress changes
-          console.log('Progress changed:', task, progress);
+          // Update task progress when changed in Gantt
+          handleProgressChange(task.id, progress);
         }
       });
     } catch (error) {
@@ -99,46 +117,47 @@ export function GanttChart({ project, timelineScale, showWeekends, onEditTask, o
           <div className="border-b border-slate-200 bg-slate-50 px-4 py-3 sticky top-0">
             <span className="text-sm font-medium text-slate-700">Task Name</span>
           </div>
-          {project.tasks.map((task) => (
+          {project.tasks.map((task, index) => (
             <div key={task.id} className="border-b border-slate-100 hover:bg-slate-50 group">
-              <div className="px-4 py-4 h-16 flex items-center">
-                <div className="flex items-center space-x-3 flex-1">
-                  <div className="flex-1">
-                    <div className="text-sm font-medium text-slate-900 truncate">{task.name}</div>
-                    <div className="text-xs text-slate-500 mt-1">
-                      {task.startDate} - {task.endDate}
+              <div className="px-3 py-2 h-12 flex items-center text-sm">
+                <div className="flex items-center justify-between w-full">
+                  <div className="flex-1 min-w-0">
+                    <div 
+                      className="font-medium text-slate-900 truncate cursor-pointer hover:text-primary"
+                      onClick={() => onEditTask(task)}
+                      title="Click to edit task"
+                    >
+                      {task.name}
                     </div>
                   </div>
-                  <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    {task.comments && (
-                      <div className="w-2 h-2 bg-blue-500 rounded-full" title="Has comments" />
-                    )}
-                    {task.attachments.length > 0 && (
-                      <div className="w-2 h-2 bg-amber-500 rounded-full" title="Has attachments" />
-                    )}
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="w-6 h-6 text-slate-400 hover:text-primary"
-                      onClick={() => onAddComment(task)}
-                    >
-                      <MessageCircle className="w-3 h-3" />
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="w-6 h-6 text-slate-400 hover:text-primary"
-                    >
-                      <Paperclip className="w-3 h-3" />
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="w-6 h-6 text-slate-400 hover:text-primary"
-                      onClick={() => onEditTask(task)}
-                    >
-                      <Edit3 className="w-3 h-3" />
-                    </Button>
+                  <div className="flex items-center space-x-2 text-xs text-slate-500 ml-2">
+                    <span>{task.startDate}</span>
+                    <span>-</span>
+                    <span>{task.endDate}</span>
+                    <div className="flex items-center space-x-1 ml-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      {task.comments && (
+                        <div className="w-2 h-2 bg-blue-500 rounded-full" title="Has comments" />
+                      )}
+                      {task.attachments.length > 0 && (
+                        <div className="w-2 h-2 bg-amber-500 rounded-full" title="Has attachments" />
+                      )}
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="w-5 h-5 text-slate-400 hover:text-primary"
+                        onClick={() => onAddComment(task)}
+                      >
+                        <MessageCircle className="w-3 h-3" />
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="w-5 h-5 text-slate-400 hover:text-primary"
+                        onClick={() => onEditTask(task)}
+                      >
+                        <Edit3 className="w-3 h-3" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </div>

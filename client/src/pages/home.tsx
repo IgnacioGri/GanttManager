@@ -11,6 +11,7 @@ import { ProjectListModal } from "@/components/project-list-modal";
 import { ProjectModal } from "@/components/project-modal";
 import { exportToExcel } from "@/lib/excel-export";
 import { useToast } from "@/hooks/use-toast";
+import { queryClient } from "@/lib/queryClient";
 import type { ProjectWithTasks, Task } from "@shared/schema";
 
 export default function Home() {
@@ -95,6 +96,28 @@ export default function Home() {
     setIsTaskModalOpen(true);
   };
 
+  const handleTaskUpdate = async (taskId: number, updates: Partial<Task>) => {
+    try {
+      const response = await fetch(`/api/tasks/${taskId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates),
+      });
+      
+      if (!response.ok) throw new Error('Failed to update task');
+      
+      // Refetch project data to update UI
+      queryClient.invalidateQueries({ queryKey: ["/api/projects", projectId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
+    } catch (error) {
+      toast({
+        title: "Update Failed",
+        description: "Failed to update task.",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -138,6 +161,7 @@ export default function Home() {
             showWeekends={showWeekends}
             onEditTask={handleEditTask}
             onAddComment={handleAddComment}
+            onTaskUpdate={handleTaskUpdate}
           />
         </main>
       </div>

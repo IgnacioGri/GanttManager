@@ -69,14 +69,18 @@
 
 .gantt-container .gantt-task {
   cursor: pointer;
+  height: 48px !important; /* Match the h-12 class (48px) */
 }
 
 .gantt-container .gantt-task-bar {
   border-radius: 4px;
+  height: 24px !important;
+  margin-top: 12px !important; /* Center the bar vertically */
 }
 
 .gantt-container .gantt-task-bar-progress {
   border-radius: 4px;
+  height: 24px !important;
 }
 
 .gantt-container .gantt-header {
@@ -86,6 +90,14 @@
 
 .gantt-container .gantt-task-list {
   display: none !important;
+}
+
+.gantt-container .gantt-grid-row {
+  height: 48px !important; /* Match task row height */
+}
+
+.gantt-container .gantt-grid-header-cell {
+  height: 48px !important;
 }
 
 /* Custom scrollbar */
