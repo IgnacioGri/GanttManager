@@ -108,36 +108,12 @@ export default function Home() {
       {/* Header */}
       <header className="bg-white border-b border-slate-200 px-6 py-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <h1 className="text-2xl font-bold text-slate-900">GanttFlow</h1>
-            <div className="flex items-center space-x-2">
-              <Button onClick={handleNewProject} className="bg-primary text-white hover:bg-primary/90">
-                <Plus className="w-4 h-4 mr-2" />
-                New Project
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={() => setIsProjectListOpen(true)}
-                className="border-slate-300 text-slate-700 hover:bg-slate-50"
-              >
-                <FolderOpen className="w-4 h-4 mr-2" />
-                Open Project
-              </Button>
+          <h1 className="text-2xl font-bold text-slate-900">GanttFlow</h1>
+          {project && (
+            <div className="text-sm text-slate-600">
+              Project: <span className="font-medium text-slate-900">{project.name}</span>
             </div>
-          </div>
-          <div className="flex items-center space-x-4">
-            <Button 
-              variant="outline" 
-              onClick={handleExportToExcel}
-              className="border-slate-300 text-slate-700 hover:bg-slate-50"
-            >
-              <Download className="w-4 h-4 mr-2" />
-              Export to Excel
-            </Button>
-            <Button variant="ghost" size="icon" className="text-slate-600 hover:text-slate-900">
-              <Settings className="w-5 h-5" />
-            </Button>
-          </div>
+          )}
         </div>
       </header>
 
@@ -149,6 +125,9 @@ export default function Home() {
           showWeekends={showWeekends}
           onShowWeekendsChange={setShowWeekends}
           onNewTask={handleNewTask}
+          onNewProject={handleNewProject}
+          onShowProjects={() => setIsProjectListOpen(true)}
+          onExportExcel={handleExportToExcel}
           projects={projects || []}
         />
         

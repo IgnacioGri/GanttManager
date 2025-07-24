@@ -2,7 +2,7 @@ import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { PlusCircle, Link as LinkIcon, Paperclip } from "lucide-react";
+import { PlusCircle, Link as LinkIcon, Paperclip, FolderOpen, Download } from "lucide-react";
 import { formatDate } from "@/lib/date-utils";
 import type { ProjectWithTasks } from "@shared/schema";
 
@@ -13,6 +13,9 @@ interface SidebarProps {
   showWeekends: boolean;
   onShowWeekendsChange: (show: boolean) => void;
   onNewTask: () => void;
+  onNewProject: () => void;
+  onShowProjects: () => void;
+  onExportExcel: () => void;
   projects: ProjectWithTasks[];
 }
 
@@ -23,6 +26,9 @@ export function Sidebar({
   showWeekends, 
   onShowWeekendsChange, 
   onNewTask,
+  onNewProject,
+  onShowProjects,
+  onExportExcel,
   projects 
 }: SidebarProps) {
   const calculateProgress = (project?: ProjectWithTasks) => {
@@ -77,21 +83,53 @@ export function Sidebar({
       </div>
 
       <div className="mb-6">
-        <h3 className="text-md font-medium text-slate-900 mb-3">Quick Actions</h3>
+        <h3 className="text-md font-medium text-slate-900 mb-3">Project Actions</h3>
+        <div className="space-y-2">
+          <Button 
+            variant="default" 
+            className="w-full justify-start"
+            onClick={onNewProject}
+          >
+            <PlusCircle className="w-4 h-4 mr-2" />
+            New Project
+          </Button>
+          <Button 
+            variant="ghost" 
+            className="w-full justify-start text-slate-700 hover:bg-slate-50"
+            onClick={onShowProjects}
+          >
+            <FolderOpen className="w-4 h-4 mr-2 text-slate-500" />
+            Browse Projects
+          </Button>
+          <Button 
+            variant="ghost" 
+            className="w-full justify-start text-slate-700 hover:bg-slate-50"
+            onClick={onExportExcel}
+            disabled={!project}
+          >
+            <Download className="w-4 h-4 mr-2 text-slate-500" />
+            Export Excel
+          </Button>
+        </div>
+      </div>
+
+      <div className="mb-6">
+        <h3 className="text-md font-medium text-slate-900 mb-3">Task Actions</h3>
         <div className="space-y-2">
           <Button 
             variant="ghost" 
             className="w-full justify-start text-slate-700 hover:bg-slate-50"
             onClick={onNewTask}
+            disabled={!project}
           >
             <PlusCircle className="w-4 h-4 mr-2 text-primary" />
             Add Task
           </Button>
-          <Button variant="ghost" className="w-full justify-start text-slate-700 hover:bg-slate-50">
+          <Button variant="ghost" className="w-full justify-start text-slate-700 hover:bg-slate-50" disabled={!project}>
             <LinkIcon className="w-4 h-4 mr-2 text-slate-500" />
             Add Dependency
           </Button>
-          <Button variant="ghost" className="w-full justify-start text-slate-700 hover:bg-slate-50">
+          <Button variant="ghost" className="w-full justify-start text-slate-700 hover:bg-slate-50" disabled={!project}>
             <Paperclip className="w-4 h-4 mr-2 text-slate-500" />
             Attach File
           </Button>

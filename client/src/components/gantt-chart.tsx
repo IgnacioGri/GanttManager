@@ -88,46 +88,28 @@ export function GanttChart({ project, timelineScale, showWeekends, onEditTask, o
   }
 
   return (
-    <div className="h-full">
-      <div className="mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold text-slate-900">Gantt Chart</h2>
-          <div className="flex items-center space-x-2">
-            <Button variant="outline" size="sm">
-              <ZoomOut className="w-4 h-4 mr-1" />
-              Zoom Out
-            </Button>
-            <Button variant="outline" size="sm">
-              <ZoomIn className="w-4 h-4 mr-1" />
-              Zoom In
-            </Button>
-            <Button variant="outline" size="sm">
-              <Maximize className="w-4 h-4 mr-1" />
-              Fit to Screen
-            </Button>
-          </div>
-        </div>
+    <div className="h-full flex flex-col">
+      <div className="mb-4">
+        <h2 className="text-xl font-semibold text-slate-900">Gantt Chart</h2>
       </div>
 
-      <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
-        <div ref={ganttRef} className="gantt-container"></div>
-        
-        {/* Custom task list overlay */}
-        <div className="absolute top-0 left-0 w-80 bg-white border-r border-slate-200 h-full overflow-y-auto">
-          <div className="border-b border-slate-200 bg-slate-50 px-4 py-3">
+      <div className="flex-1 bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden relative">
+        {/* Task list on the left */}
+        <div className="absolute top-0 left-0 w-80 bg-white border-r border-slate-200 h-full overflow-y-auto z-10">
+          <div className="border-b border-slate-200 bg-slate-50 px-4 py-3 sticky top-0">
             <span className="text-sm font-medium text-slate-700">Task Name</span>
           </div>
           {project.tasks.map((task) => (
             <div key={task.id} className="border-b border-slate-100 hover:bg-slate-50 group">
-              <div className="px-4 py-4">
-                <div className="flex items-center space-x-3">
+              <div className="px-4 py-4 h-16 flex items-center">
+                <div className="flex items-center space-x-3 flex-1">
                   <div className="flex-1">
-                    <div className="text-sm font-medium text-slate-900">{task.name}</div>
+                    <div className="text-sm font-medium text-slate-900 truncate">{task.name}</div>
                     <div className="text-xs text-slate-500 mt-1">
-                      {task.startDate} - {task.endDate} • {task.duration} days
+                      {task.startDate} - {task.endDate}
                     </div>
                   </div>
-                  <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     {task.comments && (
                       <div className="w-2 h-2 bg-blue-500 rounded-full" title="Has comments" />
                     )}
@@ -162,6 +144,11 @@ export function GanttChart({ project, timelineScale, showWeekends, onEditTask, o
               </div>
             </div>
           ))}
+        </div>
+        
+        {/* Gantt chart container */}
+        <div className="ml-80 h-full">
+          <div ref={ganttRef} className="gantt-container h-full overflow-auto"></div>
         </div>
       </div>
     </div>
