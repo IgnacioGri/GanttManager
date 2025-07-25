@@ -73,12 +73,18 @@ export function ProjectModal({ isOpen, onClose, project }: ProjectModalProps) {
   }, [project, isOpen]);
 
   const handleSave = () => {
-    if (!name || !startDate || !endDate) {
-      toast({ title: "Please fill in all required fields", variant: "destructive" });
+    if (!name || !startDate) {
+      toast({ title: "Please fill in project name and start date", variant: "destructive" });
       return;
     }
 
-    if (startDate > endDate) {
+    // For existing projects, end date is required
+    if (project && !endDate) {
+      toast({ title: "End date is required for existing projects", variant: "destructive" });
+      return;
+    }
+
+    if (endDate && startDate > endDate) {
       toast({ title: "End date must be after start date", variant: "destructive" });
       return;
     }
@@ -86,7 +92,8 @@ export function ProjectModal({ isOpen, onClose, project }: ProjectModalProps) {
     const projectData = {
       name,
       startDate: formatDateForInput(startDate),
-      endDate: formatDateForInput(endDate),
+      // For new projects, use start date as initial end date if not specified
+      endDate: formatDateForInput(endDate || startDate),
     };
 
     if (project) {
@@ -136,21 +143,33 @@ export function ProjectModal({ isOpen, onClose, project }: ProjectModalProps) {
             </div>
             
             <div>
-              <Label>End Date</Label>
+              <Label>End Date {!project && <span className="text-xs text-slate-500">(optional - will be calculated from tasks)</span>}</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button variant="outline" className="w-full justify-start text-left">
                     <CalendarIcon className="w-4 h-4 mr-2" />
-                    {endDate ? endDate.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: '2-digit' }) : "Select date"}
+                    {endDate ? endDate.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: '2-digit' }) : "Select date (optional)"}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={endDate}
-                    onSelect={setEndDate}
-                    initialFocus
-                  />
+                  <div className="p-3">
+                    <Calendar
+                      mode="single"
+                      selected={endDate}
+                      onSelect={setEndDate}
+                      initialFocus
+                    />
+                    <div className="border-t pt-2 mt-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setEndDate(new Date())}
+                        className="w-full"
+                      >
+                        Hoy
+                      </Button>
+                    </div>
+                  </div>
                 </PopoverContent>
               </Popover>
             </div>

@@ -41,6 +41,19 @@ export function Sidebar({
     return Math.round(totalProgress / project.tasks.length);
   };
 
+  const getProjectEndDate = (project: ProjectWithTasks): string => {
+    if (!project.tasks.length) return project.endDate;
+    
+    // Find the latest end date among all tasks
+    const latestTaskEndDate = project.tasks.reduce((latest, task) => {
+      const taskEndDate = new Date(task.endDate);
+      const latestDate = new Date(latest);
+      return taskEndDate > latestDate ? task.endDate : latest;
+    }, project.tasks[0].endDate);
+    
+    return latestTaskEndDate;
+  };
+
   return (
     <aside className={`${isCollapsed ? 'w-12' : 'w-80'} bg-white border-r border-slate-200 transition-all duration-300 ${isCollapsed ? 'p-2' : 'p-6'} relative`}>
       <Button
@@ -76,7 +89,7 @@ export function Sidebar({
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-600">End Date:</span>
-                  <span className="font-medium">{formatDate(project.endDate)}</span>
+                  <span className="font-medium">{formatDate(getProjectEndDate(project))}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-600">Progress:</span>
