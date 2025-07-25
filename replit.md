@@ -1,8 +1,8 @@
-# GanttFlow - Project Management Tool
+# Gantt Manager - Project Management Tool
 
 ## Overview
 
-GanttFlow is a modern web application for creating and managing Gantt charts with smart date handling, weekend controls, and dependency calculations. The application provides an intuitive interface for project planning with features like task management, file attachments, progress tracking, and Excel export capabilities.
+Gantt Manager is a modern web application for creating and managing Gantt charts with smart date handling, weekend controls, and dependency calculations. The application provides an intuitive interface for project planning with features like task management, file attachments, progress tracking, and Excel export capabilities.
 
 ## User Preferences
 

@@ -198,7 +198,7 @@ export default function Home() {
       {/* Header */}
       <header className="bg-white border-b border-slate-200 px-6 py-6 shadow-sm">
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold text-slate-900">GanttFlow</h1>
+          <h1 className="text-3xl font-bold text-slate-900">Gantt Manager</h1>
           {project && (
             <div className="text-right">
               <h2 className="text-xl font-bold text-slate-900">{project.name}</h2>
