@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { ZoomOut, ZoomIn, Maximize, MessageCircle, Paperclip, Edit3, Trash2 } from "lucide-react";
+import { ZoomOut, ZoomIn, Maximize, MessageCircle, Paperclip, Edit3, Trash2, Minimize } from "lucide-react";
 import { createGanttTasks } from "@/lib/gantt-utils";
 import { formatDate } from "@/lib/date-utils";
 import type { ProjectWithTasks, Task } from "@shared/schema";
@@ -14,6 +14,8 @@ interface GanttChartProps {
   onTaskUpdate: (taskId: number, updates: Partial<Task>) => void;
   onDeleteTask: (taskId: number) => void;
   isCollapsed: boolean;
+  isFullScreen?: boolean;
+  onToggleFullScreen?: () => void;
 }
 
 declare global {
@@ -22,7 +24,7 @@ declare global {
   }
 }
 
-export function GanttChart({ project, timelineScale, showWeekends, onEditTask, onAddComment, onTaskUpdate, onDeleteTask, isCollapsed }: GanttChartProps) {
+export function GanttChart({ project, timelineScale, showWeekends, onEditTask, onAddComment, onTaskUpdate, onDeleteTask, isCollapsed, isFullScreen = false, onToggleFullScreen }: GanttChartProps) {
   const ganttRef = useRef<HTMLDivElement>(null);
   const ganttInstance = useRef<any>(null);
 
@@ -177,68 +179,94 @@ export function GanttChart({ project, timelineScale, showWeekends, onEditTask, o
   }
 
   return (
-    <div className="h-full flex flex-col">
-      <div className="mb-4">
+    <div className={`${isFullScreen ? 'fixed inset-0 bg-slate-50 z-50 p-6' : 'h-full'} flex flex-col`}>
+      <div className="mb-4 flex items-center justify-between">
         <h2 className="text-xl font-semibold text-slate-900">Gantt Chart</h2>
+        {onToggleFullScreen && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onToggleFullScreen}
+            className="flex items-center gap-2"
+          >
+            {isFullScreen ? (
+              <>
+                <Minimize className="w-4 h-4" />
+                Exit Full Screen
+              </>
+            ) : (
+              <>
+                <Maximize className="w-4 h-4" />
+                Full Screen
+              </>
+            )}
+          </Button>
+        )}
       </div>
 
       <div className="flex-1 bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden relative">
         {/* Task list on the left */}
-        <div className={`absolute top-0 left-0 ${isCollapsed ? 'w-80' : 'w-[480px]'} bg-white border-r border-slate-200 h-full overflow-y-auto z-10 transition-all duration-300`}>
+        <div className={`absolute top-0 left-0 ${isFullScreen ? 'w-[600px]' : isCollapsed ? 'w-80' : 'w-[480px]'} bg-white border-r border-slate-200 h-full overflow-y-auto z-10 transition-all duration-300`}>
           <div className="border-b border-slate-200 bg-slate-50 px-4 py-3 sticky top-0 h-[52px] flex items-center">
-            <span className="text-sm font-medium text-slate-700">Task Name</span>
-            <div className="ml-auto text-xs text-slate-500">Start - End</div>
+            <div className="grid grid-cols-3 gap-4 w-full text-sm font-medium text-slate-700">
+              <span>Task Name</span>
+              <span className="text-center">Start</span>
+              <span className="text-center">End</span>
+            </div>
           </div>
           {project.tasks.map((task, index) => (
             <div key={task.id} className="hover:bg-slate-50 group">
               <div className="px-3 h-[52px] flex items-center text-sm border-b border-slate-100">
-                <div className="flex items-center justify-between w-full">
-                  <div className="flex-1 min-w-0 mr-4">
-                    <div 
-                      className="font-medium text-slate-900 cursor-pointer hover:text-primary"
-                      onClick={() => onEditTask(task)}
-                      title="Click to edit task"
-                    >
-                      {task.name}
+                <div className="w-full flex items-center">
+                  <div className="grid grid-cols-3 gap-4 flex-1">
+                    <div className="min-w-0">
+                      <div 
+                        className="font-medium text-slate-900 cursor-pointer hover:text-primary truncate"
+                        onClick={() => onEditTask(task)}
+                        title="Click to edit task"
+                      >
+                        {task.name}
+                      </div>
+                    </div>
+                    <div className="text-xs text-slate-500 text-center">
+                      {formatDate(task.startDate)}
+                    </div>
+                    <div className="text-xs text-slate-500 text-center">
+                      {formatDate(task.endDate)}
                     </div>
                   </div>
-                  <div className="flex items-center space-x-2 text-xs text-slate-500 whitespace-nowrap">
-                    <span>{formatDate(task.startDate)}</span>
-                    <span>-</span>
-                    <span>{formatDate(task.endDate)}</span>
-                    <div className="flex items-center space-x-1 ml-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      {task.comments && (
-                        <div className="w-2 h-2 bg-blue-500 rounded-full" title="Has comments" />
-                      )}
-                      {task.attachments.length > 0 && (
-                        <div className="w-2 h-2 bg-amber-500 rounded-full" title="Has attachments" />
-                      )}
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="w-5 h-5 text-slate-400 hover:text-primary"
-                        onClick={() => onAddComment(task)}
-                      >
-                        <MessageCircle className="w-3 h-3" />
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="w-5 h-5 text-slate-400 hover:text-primary"
-                        onClick={() => onEditTask(task)}
-                      >
-                        <Edit3 className="w-3 h-3" />
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="w-5 h-5 text-slate-400 hover:text-red-500"
-                        onClick={() => onDeleteTask(task.id)}
-                        title="Delete task"
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </Button>
-                    </div>
+                  <div className="flex items-center space-x-1 ml-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                    {task.comments && (
+                      <div className="w-2 h-2 bg-blue-500 rounded-full" title="Has comments" />
+                    )}
+                    {task.attachments.length > 0 && (
+                      <div className="w-2 h-2 bg-amber-500 rounded-full" title="Has attachments" />
+                    )}
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="w-5 h-5 text-slate-400 hover:text-primary"
+                      onClick={() => onAddComment(task)}
+                    >
+                      <MessageCircle className="w-3 h-3" />
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="w-5 h-5 text-slate-400 hover:text-primary"
+                      onClick={() => onEditTask(task)}
+                    >
+                      <Edit3 className="w-3 h-3" />
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="w-5 h-5 text-slate-400 hover:text-red-500"
+                      onClick={() => onDeleteTask(task.id)}
+                      title="Delete task"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -247,7 +275,7 @@ export function GanttChart({ project, timelineScale, showWeekends, onEditTask, o
         </div>
         
         {/* Gantt chart container */}
-        <div className={`${isCollapsed ? 'ml-80' : 'ml-[480px]'} h-full transition-all duration-300`}>
+        <div className={`${isFullScreen ? 'ml-[600px]' : isCollapsed ? 'ml-80' : 'ml-[480px]'} h-full transition-all duration-300`}>
           <div ref={ganttRef} className="gantt-container h-full overflow-auto"></div>
         </div>
       </div>

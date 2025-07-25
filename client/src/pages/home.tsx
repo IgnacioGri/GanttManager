@@ -28,6 +28,7 @@ export default function Home() {
   const [timelineScale, setTimelineScale] = useState<"Day" | "Week" | "Month">("Day");
   const [showWeekends, setShowWeekends] = useState(true);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isGanttFullScreen, setIsGanttFullScreen] = useState(false);
 
   const { data: project, isLoading } = useQuery<ProjectWithTasks>({
     queryKey: ["/api/projects", projectId],
@@ -233,6 +234,8 @@ export default function Home() {
             onTaskUpdate={handleTaskUpdate}
             onDeleteTask={handleDeleteTask}
             isCollapsed={isSidebarCollapsed}
+            isFullScreen={isGanttFullScreen}
+            onToggleFullScreen={() => setIsGanttFullScreen(!isGanttFullScreen)}
           />
         </main>
       </div>
