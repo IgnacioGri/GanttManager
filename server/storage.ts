@@ -235,7 +235,7 @@ export class MemStorage implements IStorage {
     const updatedTask: Task = { 
       ...task, 
       ...updateData,
-      attachments: updateData.attachments ? [...updateData.attachments] : task.attachments,
+      attachments: updateData.attachments ? updateData.attachments : task.attachments,
       updatedAt: new Date()
     };
     this.tasks.set(id, updatedTask);

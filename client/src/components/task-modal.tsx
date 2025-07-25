@@ -199,9 +199,69 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
     return newEndDate;
   };
 
+  const validateDate = (dateString: string): boolean => {
+    // Check format first
+    if (!dateString.match(/^\d{2}\/\d{2}\/\d{2}$/)) {
+      return false;
+    }
+    
+    const [day, month, year] = dateString.split('/').map(Number);
+    const fullYear = year + 2000;
+    
+    // Check if values are in valid ranges
+    if (month < 1 || month > 12) return false;
+    if (day < 1 || day > 31) return false;
+    if (fullYear < 2000 || fullYear > 2099) return false;
+    
+    // Create date and check if it's valid (handles leap years, days per month, etc.)
+    const date = new Date(fullYear, month - 1, day);
+    return date.getFullYear() === fullYear && 
+           date.getMonth() === month - 1 && 
+           date.getDate() === day;
+  };
+
   const handleSave = () => {
-    if (!name || !startDate || !endDate || !projectId) {
+    if (!name.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Task name is required.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate manual date inputs if in manual mode
+    if (dependencyType === "manual") {
+      if (!startDateInput || !validateDate(startDateInput)) {
+        toast({
+          title: "Invalid Date",
+          description: "Please enter a valid start date in DD/MM/YY format.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (!endDateInput || !validateDate(endDateInput)) {
+        toast({
+          title: "Invalid Date", 
+          description: "Please enter a valid end date in DD/MM/YY format.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
+    if (!startDate || !endDate || !projectId) {
       toast({ title: "Please fill in all required fields", variant: "destructive" });
+      return;
+    }
+
+    if (startDate >= endDate) {
+      toast({
+        title: "Validation Error",
+        description: "End date must be after start date.",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -319,10 +379,10 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
                       
                       // Validate and update startDate when format is complete
                       if (value.match(/^\d{2}\/\d{2}\/\d{2}$/)) {
-                        const [day, month, year] = value.split('/');
-                        const fullYear = parseInt(year) + 2000;
-                        const date = new Date(fullYear, parseInt(month) - 1, parseInt(day));
-                        if (!isNaN(date.getTime())) {
+                        if (validateDate(value)) {
+                          const [day, month, year] = value.split('/');
+                          const fullYear = parseInt(year) + 2000;
+                          const date = new Date(fullYear, parseInt(month) - 1, parseInt(day));
                           setStartDate(date);
                           // Auto-calculate end date if we have duration
                           if (duration > 0) {
@@ -333,7 +393,7 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
                         }
                       }
                     }}
-                    className="flex-1"
+                    className={`flex-1 ${startDateInput && startDateInput.match(/^\d{2}\/\d{2}\/\d{2}$/) && !validateDate(startDateInput) ? 'border-red-500 focus:border-red-500' : ''}`}
                   />
                   <Popover>
                     <PopoverTrigger asChild>
@@ -389,10 +449,10 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
                       
                       // Validate and update endDate when format is complete
                       if (value.match(/^\d{2}\/\d{2}\/\d{2}$/)) {
-                        const [day, month, year] = value.split('/');
-                        const fullYear = parseInt(year) + 2000;
-                        const date = new Date(fullYear, parseInt(month) - 1, parseInt(day));
-                        if (!isNaN(date.getTime())) {
+                        if (validateDate(value)) {
+                          const [day, month, year] = value.split('/');
+                          const fullYear = parseInt(year) + 2000;
+                          const date = new Date(fullYear, parseInt(month) - 1, parseInt(day));
                           setEndDate(date);
                           // Auto-calculate duration if we have start date
                           if (startDate) {
@@ -401,7 +461,7 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
                         }
                       }
                     }}
-                    className="flex-1"
+                    className={`flex-1 ${endDateInput && endDateInput.match(/^\d{2}\/\d{2}\/\d{2}$/) && !validateDate(endDateInput) ? 'border-red-500 focus:border-red-500' : ''}`}
                   />
                   <Popover>
                     <PopoverTrigger asChild>
