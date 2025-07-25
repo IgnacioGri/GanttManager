@@ -175,29 +175,17 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
     }
   }, [dependencyType, dependentTaskId, offsetDays, duration, skipWeekends, autoAdjustWeekends, project]);
 
-  // Auto-calculate duration when start and end dates change (manual mode only)
-  useEffect(() => {
-    if (dependencyType === "manual" && startDate && endDate) {
-      const timeDiff = endDate.getTime() - startDate.getTime();
-      const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24)) + 1;
-      if (daysDiff > 0 && daysDiff !== duration) {
-        setDuration(daysDiff);
-      }
-    }
-  }, [startDate, endDate, dependencyType, duration]);
+  // Manual calculation functions to avoid useEffect loops
+  const calculateDurationFromDates = (start: Date, end: Date): number => {
+    const timeDiff = end.getTime() - start.getTime();
+    return Math.ceil(timeDiff / (1000 * 3600 * 24)) + 1;
+  };
 
-  // Auto-calculate end date when start date and duration change (manual mode only)
-  useEffect(() => {
-    if (dependencyType === "manual" && startDate && duration && duration > 0) {
-      const newEndDate = new Date(startDate);
-      newEndDate.setDate(startDate.getDate() + duration - 1);
-      
-      // Only update if it's different to avoid infinite loops
-      if (!endDate || Math.abs(newEndDate.getTime() - endDate.getTime()) > 24 * 60 * 60 * 1000 / 2) {
-        setEndDate(newEndDate);
-      }
-    }
-  }, [startDate, duration, dependencyType]);
+  const calculateEndDateFromDuration = (start: Date, days: number): Date => {
+    const newEndDate = new Date(start);
+    newEndDate.setDate(start.getDate() + days - 1);
+    return newEndDate;
+  };
 
   const handleSave = () => {
     if (!name || !startDate || !endDate || !projectId) {
@@ -324,6 +312,10 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
                           const date = new Date(fullYear, parseInt(month) - 1, parseInt(day));
                           if (!isNaN(date.getTime())) {
                             setStartDate(date);
+                            // Auto-calculate end date if we have duration
+                            if (duration > 0) {
+                              setEndDate(calculateEndDateFromDuration(date, duration));
+                            }
                           }
                         }
                       }
@@ -341,7 +333,13 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
                         <Calendar
                           mode="single"
                           selected={startDate}
-                          onSelect={setStartDate}
+                          onSelect={(date) => {
+                          setStartDate(date);
+                          // Auto-calculate end date if we have duration
+                          if (date && duration > 0) {
+                            setEndDate(calculateEndDateFromDuration(date, duration));
+                          }
+                        }}
                           initialFocus
                         />
                         <div className="border-t pt-2 mt-2">
@@ -378,6 +376,10 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
                           const date = new Date(fullYear, parseInt(month) - 1, parseInt(day));
                           if (!isNaN(date.getTime())) {
                             setEndDate(date);
+                            // Auto-calculate duration if we have start date
+                            if (startDate) {
+                              setDuration(calculateDurationFromDates(startDate, date));
+                            }
                           }
                         }
                       }
@@ -395,7 +397,13 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
                         <Calendar
                           mode="single"
                           selected={endDate}
-                          onSelect={setEndDate}
+                          onSelect={(date) => {
+                          setEndDate(date);
+                          // Auto-calculate duration if we have start date
+                          if (date && startDate) {
+                            setDuration(calculateDurationFromDates(startDate, date));
+                          }
+                        }}
                           initialFocus
                         />
                         <div className="border-t pt-2 mt-2">
@@ -436,7 +444,14 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
                 id="duration"
                 type="number"
                 value={duration}
-                onChange={(e) => setDuration(parseInt(e.target.value) || 1)}
+                onChange={(e) => {
+                  const newDuration = parseInt(e.target.value) || 1;
+                  setDuration(newDuration);
+                  // Auto-calculate end date if we have start date
+                  if (startDate) {
+                    setEndDate(calculateEndDateFromDuration(startDate, newDuration));
+                  }
+                }}
                 min="1"
               />
             </div>
