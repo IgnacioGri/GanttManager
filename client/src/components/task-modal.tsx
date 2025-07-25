@@ -429,19 +429,17 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
             </div>
           )}
 
-          <div className={`grid ${dependencyType === "dependent" ? "grid-cols-1" : "grid-cols-2"} gap-4`}>
-            {dependencyType === "manual" && (
-              <div>
-                <Label htmlFor="duration">Duration (Days)</Label>
-                <Input
-                  id="duration"
-                  type="number"
-                  value={duration}
-                  onChange={(e) => setDuration(parseInt(e.target.value) || 1)}
-                  min="1"
-                />
-              </div>
-            )}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="duration">Duration (Days)</Label>
+              <Input
+                id="duration"
+                type="number"
+                value={duration}
+                onChange={(e) => setDuration(parseInt(e.target.value) || 1)}
+                min="1"
+              />
+            </div>
             
             <div>
               <Label>Progress ({progress[0]}%)</Label>
