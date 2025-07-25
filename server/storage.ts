@@ -212,7 +212,13 @@ export class MemStorage implements IStorage {
     const id = this.currentTaskId++;
     const now = new Date();
     const task: Task = { 
-      ...insertTask, 
+      ...insertTask,
+      progress: insertTask.progress ?? 0,
+      dependencies: insertTask.dependencies ?? [],
+      comments: insertTask.comments ?? "",
+      attachments: insertTask.attachments ?? [],
+      skipWeekends: insertTask.skipWeekends ?? true,
+      autoAdjustWeekends: insertTask.autoAdjustWeekends ?? true,
       id,
       createdAt: now,
       updatedAt: now
@@ -229,6 +235,7 @@ export class MemStorage implements IStorage {
     const updatedTask: Task = { 
       ...task, 
       ...updateData,
+      attachments: updateData.attachments ? [...updateData.attachments] : task.attachments,
       updatedAt: new Date()
     };
     this.tasks.set(id, updatedTask);

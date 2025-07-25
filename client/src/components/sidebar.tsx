@@ -16,6 +16,7 @@ interface SidebarProps {
   onNewProject: () => void;
   onShowProjects: () => void;
   onExportExcel: () => void;
+  onDeleteProject?: (projectId: number) => void;
   projects: ProjectWithTasks[];
   isCollapsed: boolean;
   onToggleCollapse: () => void;
@@ -31,6 +32,7 @@ export function Sidebar({
   onNewProject,
   onShowProjects,
   onExportExcel,
+  onDeleteProject,
   projects,
   isCollapsed,
   onToggleCollapse
@@ -102,8 +104,7 @@ export function Sidebar({
                   size="sm" 
                   onClick={() => {
                     if (confirm('¿Estás seguro de que quieres eliminar este proyecto? Se eliminarán todas las tareas asociadas.')) {
-                      // Add delete project functionality here
-                      console.log('Delete project:', project.id);
+                      onDeleteProject?.(project.id);
                     }
                   }}
                   className="w-full text-red-600 hover:text-red-700 hover:bg-red-50"

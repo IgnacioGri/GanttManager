@@ -49,6 +49,42 @@ export default function Home() {
     setIsProjectModalOpen(true);
   };
 
+  const handleDeleteProject = async (projectIdToDelete: number) => {
+    try {
+      const response = await fetch(`/api/projects/${projectIdToDelete}`, {
+        method: 'DELETE',
+      });
+      
+      if (!response.ok) throw new Error('Failed to delete project');
+      
+      await queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
+      
+      // Redirect to first available project or home
+      const allProjects = await queryClient.fetchQuery({
+        queryKey: ["/api/projects"],
+      }) as ProjectWithTasks[];
+      
+      const remainingProjects = allProjects.filter(p => p.id !== projectIdToDelete);
+      
+      if (remainingProjects.length > 0) {
+        setLocation(`/project/${remainingProjects[0].id}`);
+      } else {
+        setLocation('/');
+      }
+      
+      toast({
+        title: "Project Deleted",
+        description: "Project has been deleted successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Delete Failed",
+        description: "Failed to delete project",
+        variant: "destructive"
+      });
+    }
+  };
+
   const handleExportToExcel = async () => {
     if (!project) {
       toast({
@@ -181,6 +217,7 @@ export default function Home() {
           onNewProject={handleNewProject}
           onShowProjects={() => setIsProjectListOpen(true)}
           onExportExcel={handleExportToExcel}
+          onDeleteProject={handleDeleteProject}
           projects={projects || []}
           isCollapsed={isSidebarCollapsed}
           onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}

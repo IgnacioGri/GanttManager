@@ -114,12 +114,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/tasks/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
+      
+      // First, get the task to know which project it belongs to
+      const taskToDelete = await storage.getTask(id);
+      if (!taskToDelete) {
+        return res.status(404).json({ message: "Task not found" });
+      }
+
+      // Get all tasks in the project to fix dependencies
+      const allTasks = await storage.getTasksByProject(taskToDelete.projectId);
+      
+      // Find tasks that depend on the task being deleted
+      const dependentTasks = allTasks.filter(task => 
+        task.dependencyType === 'dependent' && task.dependentTaskId === id
+      );
+      
+      // Update dependent tasks
+      for (const dependentTask of dependentTasks) {
+        // Find the previous task (the one that the deleted task depended on)
+        const deletedTaskDependency = taskToDelete.dependentTaskId;
+        
+        if (deletedTaskDependency) {
+          // Make the dependent task depend on the deleted task's dependency
+          await storage.updateTask({
+            id: dependentTask.id,
+            dependentTaskId: deletedTaskDependency,
+            dependencyType: 'dependent'
+          });
+        } else {
+          // If deleted task had no dependency, switch dependent tasks to manual
+          await storage.updateTask({
+            id: dependentTask.id,
+            dependencyType: 'manual',
+            dependentTaskId: null
+          });
+        }
+      }
+      
+      // Delete the task
       const deleted = await storage.deleteTask(id);
       if (!deleted) {
         return res.status(404).json({ message: "Task not found" });
       }
+      
       res.status(204).send();
     } catch (error) {
+      console.error('Error deleting task:', error);
       res.status(500).json({ message: "Failed to delete task" });
     }
   });

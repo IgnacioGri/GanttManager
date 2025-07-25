@@ -40,6 +40,10 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
   const [skipWeekends, setSkipWeekends] = useState(true);
   const [autoAdjustWeekends, setAutoAdjustWeekends] = useState(true);
   const [attachments, setAttachments] = useState<any[]>([]);
+  
+  // Local states for manual date input
+  const [startDateInput, setStartDateInput] = useState("");
+  const [endDateInput, setEndDateInput] = useState("");
 
   const createTaskMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -83,6 +87,10 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
       setAutoAdjustWeekends(task.autoAdjustWeekends);
       setAttachments(task.attachments);
       
+      // Update date inputs
+      setStartDateInput(task.startDate ? formatDate(formatDateForInput(new Date(task.startDate))) : "");
+      setEndDateInput(task.endDate ? formatDate(formatDateForInput(new Date(task.endDate))) : "");
+      
       // Check if this task has dependencies and restore dependency settings
       if (task.dependencies.length > 0) {
         setDependencyType("dependent");
@@ -107,6 +115,10 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
       setSkipWeekends(true);
       setAutoAdjustWeekends(true);
       setAttachments([]);
+      
+      // Reset date inputs
+      setStartDateInput("");
+      setEndDateInput("");
     }
   }, [task, isOpen]);
 
@@ -300,22 +312,23 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
                   <Input
                     type="text"
                     placeholder="DD/MM/YY"
-                    value={startDate ? formatDate(formatDateForInput(startDate)) : ""}
+                    value={startDateInput}
                     onChange={(e) => {
                       const value = e.target.value;
-                      // Allow partial input while typing
-                      if (value === "" || value.match(/^\d{0,2}(\/\d{0,2})?(\/\d{0,2})?$/)) {
-                        // Only update date when format is complete
-                        if (value.match(/^\d{2}\/\d{2}\/\d{2}$/)) {
-                          const [day, month, year] = value.split('/');
-                          const fullYear = parseInt(year) + 2000;
-                          const date = new Date(fullYear, parseInt(month) - 1, parseInt(day));
-                          if (!isNaN(date.getTime())) {
-                            setStartDate(date);
-                            // Auto-calculate end date if we have duration
-                            if (duration > 0) {
-                              setEndDate(calculateEndDateFromDuration(date, duration));
-                            }
+                      setStartDateInput(value);
+                      
+                      // Validate and update startDate when format is complete
+                      if (value.match(/^\d{2}\/\d{2}\/\d{2}$/)) {
+                        const [day, month, year] = value.split('/');
+                        const fullYear = parseInt(year) + 2000;
+                        const date = new Date(fullYear, parseInt(month) - 1, parseInt(day));
+                        if (!isNaN(date.getTime())) {
+                          setStartDate(date);
+                          // Auto-calculate end date if we have duration
+                          if (duration > 0) {
+                            const newEndDate = calculateEndDateFromDuration(date, duration);
+                            setEndDate(newEndDate);
+                            setEndDateInput(formatDate(formatDateForInput(newEndDate)));
                           }
                         }
                       }
@@ -335,9 +348,14 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
                           selected={startDate}
                           onSelect={(date) => {
                           setStartDate(date);
-                          // Auto-calculate end date if we have duration
-                          if (date && duration > 0) {
-                            setEndDate(calculateEndDateFromDuration(date, duration));
+                          if (date) {
+                            setStartDateInput(formatDate(formatDateForInput(date)));
+                            // Auto-calculate end date if we have duration
+                            if (duration > 0) {
+                              const newEndDate = calculateEndDateFromDuration(date, duration);
+                              setEndDate(newEndDate);
+                              setEndDateInput(formatDate(formatDateForInput(newEndDate)));
+                            }
                           }
                         }}
                           initialFocus
@@ -364,22 +382,21 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
                   <Input
                     type="text"
                     placeholder="DD/MM/YY"
-                    value={endDate ? formatDate(formatDateForInput(endDate)) : ""}
+                    value={endDateInput}
                     onChange={(e) => {
                       const value = e.target.value;
-                      // Allow partial input while typing
-                      if (value === "" || value.match(/^\d{0,2}(\/\d{0,2})?(\/\d{0,2})?$/)) {
-                        // Only update date when format is complete
-                        if (value.match(/^\d{2}\/\d{2}\/\d{2}$/)) {
-                          const [day, month, year] = value.split('/');
-                          const fullYear = parseInt(year) + 2000;
-                          const date = new Date(fullYear, parseInt(month) - 1, parseInt(day));
-                          if (!isNaN(date.getTime())) {
-                            setEndDate(date);
-                            // Auto-calculate duration if we have start date
-                            if (startDate) {
-                              setDuration(calculateDurationFromDates(startDate, date));
-                            }
+                      setEndDateInput(value);
+                      
+                      // Validate and update endDate when format is complete
+                      if (value.match(/^\d{2}\/\d{2}\/\d{2}$/)) {
+                        const [day, month, year] = value.split('/');
+                        const fullYear = parseInt(year) + 2000;
+                        const date = new Date(fullYear, parseInt(month) - 1, parseInt(day));
+                        if (!isNaN(date.getTime())) {
+                          setEndDate(date);
+                          // Auto-calculate duration if we have start date
+                          if (startDate) {
+                            setDuration(calculateDurationFromDates(startDate, date));
                           }
                         }
                       }
@@ -399,9 +416,12 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
                           selected={endDate}
                           onSelect={(date) => {
                           setEndDate(date);
-                          // Auto-calculate duration if we have start date
-                          if (date && startDate) {
-                            setDuration(calculateDurationFromDates(startDate, date));
+                          if (date) {
+                            setEndDateInput(formatDate(formatDateForInput(date)));
+                            // Auto-calculate duration if we have start date
+                            if (startDate) {
+                              setDuration(calculateDurationFromDates(startDate, date));
+                            }
                           }
                         }}
                           initialFocus
