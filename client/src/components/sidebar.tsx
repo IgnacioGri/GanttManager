@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { PlusCircle, FolderOpen, Download, ChevronLeft, ChevronRight, Plus, ChevronDown } from "lucide-react";
+import { PlusCircle, FolderOpen, Download, ChevronLeft, ChevronRight, Plus, ChevronDown, Trash2 } from "lucide-react";
 import { formatDate } from "@/lib/date-utils";
 import type { ProjectWithTasks } from "@shared/schema";
 
@@ -99,20 +99,7 @@ export function Sidebar({
                   <span className="font-medium">{calculateProgress(project)}%</span>
                 </div>
               </div>
-              <div className="mt-4 pt-4 border-t border-slate-200">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => {
-                    if (confirm('¿Estás seguro de que quieres eliminar este proyecto? Se eliminarán todas las tareas asociadas.')) {
-                      onDeleteProject?.(project.id);
-                    }
-                  }}
-                  className="w-full text-red-600 hover:text-red-700 hover:bg-red-50"
-                >
-                  Eliminar Proyecto
-                </Button>
-              </div>
+
             </div>
           )}
 
@@ -163,6 +150,18 @@ export function Sidebar({
                 <DropdownMenuItem onClick={onExportExcel} disabled={!project}>
                   <Download className="w-4 h-4 mr-2" />
                   Export Excel
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => {
+                    if (project && confirm('¿Estás seguro de que quieres eliminar este proyecto? Se eliminarán todas las tareas asociadas.')) {
+                      onDeleteProject?.(project.id);
+                    }
+                  }}
+                  disabled={!project}
+                  className="text-red-600 focus:text-red-600"
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Delete Project
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
