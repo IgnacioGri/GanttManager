@@ -2,7 +2,8 @@ import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { PlusCircle, Link as LinkIcon, Paperclip, FolderOpen, Download, ChevronLeft, ChevronRight } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { PlusCircle, FolderOpen, Download, ChevronLeft, ChevronRight, Plus, ChevronDown } from "lucide-react";
 import { formatDate } from "@/lib/date-utils";
 import type { ProjectWithTasks } from "@shared/schema";
 
@@ -140,73 +141,49 @@ export function Sidebar({
 
           <div className="mb-6">
             <h3 className="text-md font-medium text-slate-900 mb-3">Project Actions</h3>
-            <div className="space-y-2">
-              <Button 
-                variant="default" 
-                className="w-full justify-start"
-                onClick={onNewProject}
-              >
-                <PlusCircle className="w-4 h-4 mr-2" />
-                New Project
-              </Button>
-              <Button 
-                variant="ghost" 
-                className="w-full justify-start text-slate-700 hover:bg-slate-50"
-                onClick={onShowProjects}
-              >
-                <FolderOpen className="w-4 h-4 mr-2 text-slate-500" />
-                Browse Projects
-              </Button>
-              <Button 
-                variant="ghost" 
-                className="w-full justify-start text-slate-700 hover:bg-slate-50"
-                onClick={onExportExcel}
-                disabled={!project}
-              >
-                <Download className="w-4 h-4 mr-2 text-slate-500" />
-                Export Excel
-              </Button>
-            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="w-full justify-between">
+                  <span className="flex items-center">
+                    <PlusCircle className="w-4 h-4 mr-2" />
+                    Project Actions
+                  </span>
+                  <ChevronDown className="w-4 h-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-full">
+                <DropdownMenuItem onClick={onNewProject}>
+                  <PlusCircle className="w-4 h-4 mr-2" />
+                  New Project
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={onShowProjects}>
+                  <FolderOpen className="w-4 h-4 mr-2" />
+                  Browse Projects
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={onExportExcel} disabled={!project}>
+                  <Download className="w-4 h-4 mr-2" />
+                  Export Excel
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
           <div className="mb-6">
             <h3 className="text-md font-medium text-slate-900 mb-3">Task Actions</h3>
             <div className="space-y-2">
               <Button 
-                variant="ghost" 
-                className="w-full justify-start text-slate-700 hover:bg-slate-50"
+                variant="outline" 
+                className="w-full justify-start"
                 onClick={onNewTask}
                 disabled={!project}
               >
-                <PlusCircle className="w-4 h-4 mr-2 text-primary" />
+                <Plus className="w-4 h-4 mr-2" />
                 Add Task
-              </Button>
-              <Button variant="ghost" className="w-full justify-start text-slate-700 hover:bg-slate-50" disabled={!project}>
-                <LinkIcon className="w-4 h-4 mr-2 text-slate-500" />
-                Add Dependency
-              </Button>
-              <Button variant="ghost" className="w-full justify-start text-slate-700 hover:bg-slate-50" disabled={!project}>
-                <Paperclip className="w-4 h-4 mr-2 text-slate-500" />
-                Attach File
               </Button>
             </div>
           </div>
 
-          <div>
-            <h3 className="text-md font-medium text-slate-900 mb-3">Recent Projects</h3>
-            <div className="space-y-2">
-              {projects.slice(0, 3).map((proj) => (
-                <Link key={proj.id} href={`/project/${proj.id}`}>
-                  <div className="p-3 border border-slate-200 rounded-lg hover:bg-slate-50 cursor-pointer transition-colors">
-                    <div className="text-sm font-medium text-slate-900">{proj.name}</div>
-                    <div className="text-xs text-slate-500">
-                      {proj.tasks?.length || 0} tasks • {calculateProgress(proj)}% complete
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
+
         </div>
       )}
     </aside>
