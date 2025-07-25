@@ -35,7 +35,7 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
   const [progress, setProgress] = useState([0]);
   const [dependencies, setDependencies] = useState<string[]>([]);
   const [dependencyType, setDependencyType] = useState<"manual" | "dependent">("manual");
-  const [dependentTaskId, setDependentTaskId] = useState<string>("");
+
   const [offsetDays, setOffsetDays] = useState(0);
   const [skipWeekends, setSkipWeekends] = useState(true);
   const [autoAdjustWeekends, setAutoAdjustWeekends] = useState(true);
@@ -94,11 +94,9 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
       // Check if this task has dependencies and restore dependency settings
       if (task.dependencies.length > 0) {
         setDependencyType("dependent");
-        setDependentTaskId(task.dependencies[0]);
         setOffsetDays(0); // Could be enhanced to store this in the future
       } else {
         setDependencyType("manual");
-        setDependentTaskId("");
         setOffsetDays(0);
       }
     } else {
@@ -110,7 +108,7 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
       setProgress([0]);
       setDependencies([]);
       setDependencyType("manual");
-      setDependentTaskId("");
+
       setOffsetDays(0);
       setSkipWeekends(true);
       setAutoAdjustWeekends(true);
@@ -153,13 +151,18 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
 
   // Calculate dates based on dependency
   useEffect(() => {
-    if (dependencyType === "dependent" && dependentTaskId && project) {
-      const dependentTask = project.tasks.find(t => t.id.toString() === dependentTaskId);
-      if (dependentTask) {
-        const depEndDate = parseInputDate(dependentTask.endDate);
-        let calculatedStartDate = new Date(depEndDate);
+    if (dependencyType === "dependent" && dependencies.length > 0 && project) {
+      // Find the latest end date among all dependent tasks
+      const dependentTasks = project.tasks.filter(t => dependencies.includes(t.id.toString()));
+      if (dependentTasks.length > 0) {
+        const latestEndDate = dependentTasks.reduce((latest, task) => {
+          const taskEndDate = parseInputDate(task.endDate);
+          return taskEndDate > latest ? taskEndDate : latest;
+        }, new Date(0));
         
-        // Add offset days
+        let calculatedStartDate = new Date(latestEndDate);
+        
+        // Add offset days after the latest task
         if (offsetDays > 0) {
           if (skipWeekends) {
             calculatedStartDate = addBusinessDays(calculatedStartDate, offsetDays);
@@ -174,6 +177,7 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
         }
         
         setStartDate(calculatedStartDate);
+        setStartDateInput(formatDate(formatDateForInput(calculatedStartDate)));
         
         // Calculate end date based on duration
         let calculatedEndDate = new Date(calculatedStartDate);
@@ -183,9 +187,10 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
           calculatedEndDate.setDate(calculatedStartDate.getDate() + duration - 1);
         }
         setEndDate(calculatedEndDate);
+        setEndDateInput(formatDate(formatDateForInput(calculatedEndDate)));
       }
     }
-  }, [dependencyType, dependentTaskId, offsetDays, duration, skipWeekends, autoAdjustWeekends, project]);
+  }, [dependencyType, dependencies, offsetDays, duration, skipWeekends, autoAdjustWeekends, project]);
 
   // Manual calculation functions to avoid useEffect loops
   const calculateDurationFromDates = (start: Date, end: Date): number => {
@@ -270,11 +275,8 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
       adjustedStartDate = adjustDateForWeekends(startDate);
     }
 
-    // Set dependencies based on type
+    // Set dependencies based on type - dependencies array already contains multiple task IDs
     let finalDependencies = dependencies;
-    if (dependencyType === "dependent" && dependentTaskId) {
-      finalDependencies = [dependentTaskId];
-    }
 
     const taskData = {
       projectId,
@@ -332,23 +334,34 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
           {dependencyType === "dependent" && (
             <div className="space-y-4 bg-slate-50 p-4 rounded-lg">
               <div>
-                <Label>Depends on Task</Label>
-                <Select value={dependentTaskId} onValueChange={setDependentTaskId}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a task" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {project?.tasks.filter(t => t.id !== task?.id).map((t) => (
-                      <SelectItem key={t.id} value={t.id.toString()}>
-                        {t.name} (ends {t.endDate})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label>Depends on Tasks</Label>
+                <div className="space-y-2">
+                  {project?.tasks.filter(t => t.id !== task?.id).map((t) => (
+                    <div key={t.id} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`task-${t.id}`}
+                        checked={dependencies.includes(t.id.toString())}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setDependencies(prev => [...prev, t.id.toString()]);
+                          } else {
+                            setDependencies(prev => prev.filter(id => id !== t.id.toString()));
+                          }
+                        }}
+                      />
+                      <Label htmlFor={`task-${t.id}`} className="text-sm">
+                        {t.name} (ends {formatDate(formatDateForInput(new Date(t.endDate)))})
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs text-slate-500 mt-2">
+                  Select one or more tasks that must be completed before this task can start
+                </p>
               </div>
               
               <div>
-                <Label htmlFor="offsetDays">Additional days after task completion</Label>
+                <Label htmlFor="offsetDays">Additional days after all tasks complete</Label>
                 <Input
                   id="offsetDays"
                   type="number"
@@ -358,7 +371,7 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
                   placeholder="0"
                 />
                 <p className="text-xs text-slate-500 mt-1">
-                  Task will start {offsetDays} day(s) after the selected task ends
+                  Task will start {offsetDays} day(s) after ALL selected tasks end
                 </p>
               </div>
             </div>
@@ -406,6 +419,7 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
                         <Calendar
                           mode="single"
                           selected={startDate}
+                          defaultMonth={startDate || new Date()}
                           onSelect={(date) => {
                           setStartDate(date);
                           if (date) {
@@ -474,6 +488,7 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
                         <Calendar
                           mode="single"
                           selected={endDate}
+                          defaultMonth={endDate || new Date()}
                           onSelect={(date) => {
                           setEndDate(date);
                           if (date) {
@@ -504,10 +519,18 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
             </div>
           )}
 
-          {dependencyType === "dependent" && startDate && endDate && (
+          {dependencyType === "dependent" && dependencies.length > 0 && startDate && endDate && (
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
               <p className="text-sm text-blue-700">
-                <strong>Calculated dates:</strong> {startDate.toLocaleDateString()} to {endDate.toLocaleDateString()}
+                <strong>Calculated dates:</strong> {formatDate(formatDateForInput(startDate))} to {formatDate(formatDateForInput(endDate))}
+              </p>
+              <p className="text-xs text-blue-600 mt-1">
+                Depends on {dependencies.length} task{dependencies.length > 1 ? 's' : ''}: {
+                  project?.tasks
+                    .filter(t => dependencies.includes(t.id.toString()))
+                    .map(t => t.name)
+                    .join(', ')
+                }
               </p>
               {autoAdjustWeekends && (
                 <p className="text-xs text-blue-600 mt-1">
@@ -527,9 +550,11 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
                 onChange={(e) => {
                   const newDuration = parseInt(e.target.value) || 1;
                   setDuration(newDuration);
-                  // Auto-calculate end date if we have start date
+                  // Auto-calculate end date when duration changes
                   if (startDate) {
-                    setEndDate(calculateEndDateFromDuration(startDate, newDuration));
+                    const newEndDate = calculateEndDateFromDuration(startDate, newDuration);
+                    setEndDate(newEndDate);
+                    setEndDateInput(formatDate(formatDateForInput(newEndDate)));
                   }
                 }}
                 min="1"

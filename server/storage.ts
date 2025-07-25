@@ -216,7 +216,7 @@ export class MemStorage implements IStorage {
       progress: insertTask.progress ?? 0,
       dependencies: insertTask.dependencies ?? [],
       comments: insertTask.comments ?? "",
-      attachments: insertTask.attachments ?? [],
+      attachments: Array.isArray(insertTask.attachments) ? insertTask.attachments : [],
       skipWeekends: insertTask.skipWeekends ?? true,
       autoAdjustWeekends: insertTask.autoAdjustWeekends ?? true,
       id,
@@ -235,7 +235,7 @@ export class MemStorage implements IStorage {
     const updatedTask: Task = { 
       ...task, 
       ...updateData,
-      attachments: updateData.attachments ? updateData.attachments : task.attachments,
+      attachments: Array.isArray(updateData.attachments) ? updateData.attachments : task.attachments,
       updatedAt: new Date()
     };
     this.tasks.set(id, updatedTask);
