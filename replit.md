@@ -7,6 +7,7 @@ GanttFlow is a modern web application for creating and managing Gantt charts wit
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
+Default timeline scale: Days (changed from Week to provide more detailed daily view by default)
 
 ## System Architecture
 

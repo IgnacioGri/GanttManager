@@ -25,7 +25,7 @@ export default function Home() {
   const [isProjectListOpen, setIsProjectListOpen] = useState(false);
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const [timelineScale, setTimelineScale] = useState<"Day" | "Week" | "Month">("Week");
+  const [timelineScale, setTimelineScale] = useState<"Day" | "Week" | "Month">("Day");
   const [showWeekends, setShowWeekends] = useState(true);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
