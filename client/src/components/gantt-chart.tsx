@@ -190,8 +190,8 @@ export function GanttChart({ project, timelineScale, showWeekends, onEditTask, o
             <div className="ml-auto text-xs text-slate-500">Start - End</div>
           </div>
           {project.tasks.map((task, index) => (
-            <div key={task.id} className="border-b border-slate-100 hover:bg-slate-50 group">
-              <div className="px-3 py-2 h-[52px] flex items-center text-sm">
+            <div key={task.id} className="hover:bg-slate-50 group">
+              <div className="px-3 h-[52px] flex items-center text-sm border-b border-slate-100">
                 <div className="flex items-center justify-between w-full">
                   <div className="flex-1 min-w-0 mr-4">
                     <div 
