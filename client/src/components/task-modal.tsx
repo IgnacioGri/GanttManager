@@ -13,7 +13,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { CalendarIcon, Upload, X, Download } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { adjustDateForWeekends, formatDateForInput, parseInputDate, addBusinessDays } from "@/lib/date-utils";
+import { formatDate, formatDateForInput, parseInputDate, adjustDateForWeekends, addBusinessDays, calculateBusinessDays } from "@/lib/date-utils";
 import type { Task, ProjectWithTasks } from "@shared/schema";
 
 interface TaskModalProps {
@@ -300,7 +300,7 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
                   <Input
                     type="text"
                     placeholder="DD/MM/YY"
-                    value={startDate ? startDate.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: '2-digit' }) : ""}
+                    value={startDate ? formatDate(formatDateForInput(startDate)) : ""}
                     onChange={(e) => {
                       const value = e.target.value;
                       // Allow partial input while typing
@@ -364,7 +364,7 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
                   <Input
                     type="text"
                     placeholder="DD/MM/YY"
-                    value={endDate ? endDate.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: '2-digit' }) : ""}
+                    value={endDate ? formatDate(formatDateForInput(endDate)) : ""}
                     onChange={(e) => {
                       const value = e.target.value;
                       // Allow partial input while typing
