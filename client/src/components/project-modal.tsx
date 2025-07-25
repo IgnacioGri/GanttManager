@@ -143,7 +143,7 @@ export function ProjectModal({ isOpen, onClose, project }: ProjectModalProps) {
             </div>
             
             <div>
-              <Label>End Date {!project && <span className="text-xs text-slate-500">(optional - will be calculated from tasks)</span>}</Label>
+              <Label>End Date</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button variant="outline" className="w-full justify-start text-left">
