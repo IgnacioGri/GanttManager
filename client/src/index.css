@@ -116,17 +116,36 @@
   margin-top: 0px !important;
 }
 
-/* Task bar colors based on task ID */
-.gantt-container .gantt-task-bar[data-task-id="1"] { background-color: #3b82f6 !important; }
-.gantt-container .gantt-task-bar[data-task-id="2"] { background-color: #10b981 !important; }
-.gantt-container .gantt-task-bar[data-task-id="3"] { background-color: #f59e0b !important; }
-.gantt-container .gantt-task-bar[data-task-id="4"] { background-color: #ef4444 !important; }
-.gantt-container .gantt-task-bar[data-task-id="5"] { background-color: #8b5cf6 !important; }
-.gantt-container .gantt-task-bar[data-task-id="6"] { background-color: #06b6d4 !important; }
+/* Task bar colors based on phase - Planning, Design, Development, QA */
+.gantt-container .gantt-task-bar[data-task-id="1"] { background-color: #8b5cf6 !important; } /* Planning - Purple */
+.gantt-container .gantt-task-bar[data-task-id="2"] { background-color: #06b6d4 !important; } /* Design - Cyan */
+.gantt-container .gantt-task-bar[data-task-id="3"] { background-color: #3b82f6 !important; } /* Development - Blue */
+.gantt-container .gantt-task-bar[data-task-id="4"] { background-color: #3b82f6 !important; } /* Development - Blue */
+.gantt-container .gantt-task-bar[data-task-id="5"] { background-color: #f59e0b !important; } /* QA - Amber */
+.gantt-container .gantt-task-bar[data-task-id="6"] { background-color: #10b981 !important; } /* Deployment - Green */
 .gantt-container .gantt-task-bar[data-task-id="7"] { background-color: #84cc16 !important; }
 .gantt-container .gantt-task-bar[data-task-id="8"] { background-color: #f97316 !important; }
 .gantt-container .gantt-task-bar[data-task-id="9"] { background-color: #ec4899 !important; }
 .gantt-container .gantt-task-bar[data-task-id="10"] { background-color: #6366f1 !important; }
+
+/* Today line */
+.gantt-container .gantt-today-line {
+  stroke: #ef4444 !important;
+  stroke-width: 2px !important;
+  stroke-dasharray: 4,4 !important;
+}
+
+/* Progress bars within task bars */
+.gantt-container .gantt-task-bar-progress {
+  background: rgba(255, 255, 255, 0.3) !important;
+  border-radius: 4px !important;
+}
+
+/* Hover effects */
+.gantt-container .gantt-task:hover {
+  transform: translateY(-1px) !important;
+  transition: transform 0.2s ease !important;
+}
 
 /* Custom scrollbar */
 .gantt-container::-webkit-scrollbar {

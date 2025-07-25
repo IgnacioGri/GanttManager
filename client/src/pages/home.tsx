@@ -196,12 +196,13 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-slate-50 font-inter">
       {/* Header */}
-      <header className="bg-white border-b border-slate-200 px-6 py-4">
+      <header className="bg-white border-b border-slate-200 px-6 py-6 shadow-sm">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-slate-900">GanttFlow</h1>
+          <h1 className="text-3xl font-bold text-slate-900">GanttFlow</h1>
           {project && (
-            <div className="text-sm text-slate-600">
-              Project: <span className="font-medium text-slate-900">{project.name}</span>
+            <div className="text-right">
+              <h2 className="text-xl font-bold text-slate-900">{project.name}</h2>
+              <p className="text-sm text-slate-500 uppercase tracking-wide">PROJECT</p>
             </div>
           )}
         </div>
@@ -224,7 +225,7 @@ export default function Home() {
           onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
         />
         
-        <main className="flex-1 p-6 overflow-auto">
+        <main className="flex-1 p-6 overflow-auto bg-slate-50">
           <GanttChart 
             project={project}
             timelineScale={timelineScale}

@@ -110,6 +110,7 @@ export function GanttChart({ project, timelineScale, showWeekends, onEditTask, o
         language: 'en',
         show_weekends: showWeekends,
         readonly: false,
+        show_today_line: true,
         on_click: (task: any) => {
           const originalTask = project.tasks.find(t => t.id.toString() === task.id);
           if (originalTask) {
@@ -126,11 +127,21 @@ export function GanttChart({ project, timelineScale, showWeekends, onEditTask, o
         }
       });
       
-      // Apply custom colors with progress-based transparency after initialization
+      // Apply custom colors and hover effects after initialization
       setTimeout(() => {
         project.tasks.forEach((task, index) => {
-          const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#84cc16', '#f97316', '#ec4899', '#6366f1'];
-          const baseColor = colors[index % colors.length];
+          // Phase-based colors
+          const getTaskColor = (taskName: string) => {
+            const name = taskName.toLowerCase();
+            if (name.includes('planning') || name.includes('project')) return '#8b5cf6'; // Purple
+            if (name.includes('design') || name.includes('ui') || name.includes('ux')) return '#06b6d4'; // Cyan
+            if (name.includes('development') || name.includes('frontend') || name.includes('backend')) return '#3b82f6'; // Blue
+            if (name.includes('testing') || name.includes('qa')) return '#f59e0b'; // Amber
+            if (name.includes('deployment') || name.includes('launch')) return '#10b981'; // Green
+            return '#6366f1'; // Default indigo
+          };
+          
+          const baseColor = getTaskColor(task.name);
           
           // Calculate opacity based on progress: 0% = solid (1.0), 100% = very transparent (0.3)
           const opacity = 1.0 - (task.progress / 100) * 0.7;
@@ -142,6 +153,21 @@ export function GanttChart({ project, timelineScale, showWeekends, onEditTask, o
             const g = parseInt(baseColor.slice(3, 5), 16);
             const b = parseInt(baseColor.slice(5, 7), 16);
             (taskBar as HTMLElement).style.backgroundColor = `rgba(${r}, ${g}, ${b}, ${opacity})`;
+            
+            // Add hover effect that highlights corresponding row
+            (taskBar as HTMLElement).addEventListener('mouseenter', () => {
+              const taskRow = document.querySelector(`[data-task-id="${task.id}"]`);
+              if (taskRow) {
+                taskRow.classList.add('bg-blue-50');
+              }
+            });
+            
+            (taskBar as HTMLElement).addEventListener('mouseleave', () => {
+              const taskRow = document.querySelector(`[data-task-id="${task.id}"]`);
+              if (taskRow) {
+                taskRow.classList.remove('bg-blue-50');
+              }
+            });
           }
         });
       }, 100);
@@ -182,22 +208,25 @@ export function GanttChart({ project, timelineScale, showWeekends, onEditTask, o
   return (
     <div className={`${isFullScreen ? 'fixed inset-0 bg-slate-50 z-50 p-6' : 'h-full'} flex flex-col`}>
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-xl font-semibold text-slate-900">Gantt Chart</h2>
+        <div>
+          <h2 className="text-2xl font-bold text-slate-900">Gantt Chart</h2>
+          <p className="text-sm text-slate-500 uppercase tracking-wide">PROJECT TIMELINE</p>
+        </div>
         {onToggleFullScreen && (
           <Button
             variant="outline"
-            size="sm"
+            size="lg"
             onClick={onToggleFullScreen}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 shadow-sm"
           >
             {isFullScreen ? (
               <>
-                <Minimize className="w-4 h-4" />
+                <Minimize className="w-5 h-5" />
                 Exit Full Screen
               </>
             ) : (
               <>
-                <Maximize className="w-4 h-4" />
+                <Maximize className="w-5 h-5" />
                 Full Screen
               </>
             )}
@@ -205,20 +234,20 @@ export function GanttChart({ project, timelineScale, showWeekends, onEditTask, o
         )}
       </div>
 
-      <div className="flex-1 bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden relative">
+      <div className="flex-1 bg-white rounded-lg border border-slate-200 shadow-lg overflow-hidden relative">
         {/* Task list on the left - hidden in full screen */}
         {!isFullScreen && (
           <div className={`absolute top-0 left-0 ${isCollapsed ? 'w-80' : 'w-[480px]'} bg-white border-r border-slate-200 h-full overflow-y-auto z-10 transition-all duration-300`}>
           <div className="border-b border-slate-200 bg-slate-50 px-4 py-3 sticky top-0 h-[52px] flex items-center">
-            <div className="w-full flex items-center text-sm font-medium text-slate-700">
-              <div className="flex-1">Task Name</div>
-              <div className="w-20 text-center">Start</div>
-              <div className="w-20 text-center">End</div>
+            <div className="w-full flex items-center text-xs font-medium text-slate-600 uppercase tracking-wide">
+              <div className="flex-1">TASK NAME</div>
+              <div className="w-20 text-center">START</div>
+              <div className="w-20 text-center">END</div>
               <div className="w-10"></div>
             </div>
           </div>
           {project.tasks.map((task, index) => (
-            <div key={task.id} className="hover:bg-slate-50 group">
+            <div key={task.id} className="hover:bg-blue-50 group transition-colors" data-task-id={task.id}>
               <div className="px-3 h-[52px] flex items-center text-sm border-b border-slate-100">
                 <div className="w-full flex items-center">
                   <div className="flex-1 min-w-0 pr-4">

@@ -58,7 +58,7 @@ export function Sidebar({
   };
 
   return (
-    <aside className={`${isCollapsed ? 'w-12' : 'w-80'} bg-white border-r border-slate-200 transition-all duration-300 ${isCollapsed ? 'p-2' : 'p-6'} relative`}>
+    <aside className={`${isCollapsed ? 'w-12' : 'w-80'} bg-slate-50 border-r border-slate-200 transition-all duration-300 ${isCollapsed ? 'p-2' : 'p-6'} relative shadow-sm`}>
       <Button
         variant="ghost"
         size="icon"
@@ -83,51 +83,55 @@ export function Sidebar({
       ) : (
         <div>
           {project && (
-            <div className="mb-6">
-              <h2 className="text-lg font-semibold text-slate-900 mb-4">Project: {project.name}</h2>
-              <div className="space-y-2 text-sm">
+            <div className="mb-6 bg-white p-4 rounded-lg shadow-sm border border-slate-200">
+              <h2 className="text-sm uppercase tracking-wide text-slate-500 mb-3">PROJECT DETAILS</h2>
+              <div className="space-y-3 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-slate-600">Start Date:</span>
+                  <span className="text-slate-600 uppercase text-xs tracking-wide">START DATE</span>
                   <span className="font-medium">{formatDate(project.startDate)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-600">End Date:</span>
+                  <span className="text-slate-600 uppercase text-xs tracking-wide">END DATE</span>
                   <span className="font-medium">{formatDate(getProjectEndDate(project))}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-600">Progress:</span>
+                  <span className="text-slate-600 uppercase text-xs tracking-wide">PROGRESS</span>
                   <span className="font-medium">{calculateProgress(project)}%</span>
                 </div>
               </div>
-
             </div>
           )}
 
-          <div className="mb-6">
-            <h3 className="text-md font-medium text-slate-900 mb-3">Timeline Options</h3>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <label className="text-sm text-slate-700">Scale:</label>
-                <Select value={timelineScale} onValueChange={onTimelineScaleChange}>
-                  <SelectTrigger className="w-24">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Day">Days</SelectItem>
-                    <SelectItem value="Week">Weeks</SelectItem>
-                    <SelectItem value="Month">Months</SelectItem>
-                  </SelectContent>
-                </Select>
+          <div className="mb-6 bg-white p-4 rounded-lg shadow-sm border border-slate-200">
+            <h3 className="text-sm uppercase tracking-wide text-slate-500 mb-4">TIMELINE OPTIONS</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="text-xs uppercase tracking-wide text-slate-600 mb-2 block">SCALE</label>
+                <div className="flex bg-slate-100 rounded-lg p-1">
+                  {(['Day', 'Week', 'Month'] as const).map((scale) => (
+                    <button
+                      key={scale}
+                      onClick={() => onTimelineScaleChange(scale)}
+                      className={`flex-1 px-3 py-2 text-xs font-medium rounded-md transition-all ${
+                        timelineScale === scale
+                          ? 'bg-white text-slate-900 shadow-sm'
+                          : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                    >
+                      {scale === 'Day' ? 'Days' : scale === 'Week' ? 'Weeks' : 'Months'}
+                    </button>
+                  ))}
+                </div>
               </div>
               <div className="flex items-center justify-between">
-                <label className="text-sm text-slate-700">Show Weekends:</label>
+                <label className="text-xs uppercase tracking-wide text-slate-600">SHOW WEEKENDS</label>
                 <Switch checked={showWeekends} onCheckedChange={onShowWeekendsChange} />
               </div>
             </div>
           </div>
 
-          <div className="mb-6">
-            <h3 className="text-md font-medium text-slate-900 mb-3">Project Actions</h3>
+          <div className="mb-6 bg-white p-4 rounded-lg shadow-sm border border-slate-200">
+            <h3 className="text-sm uppercase tracking-wide text-slate-500 mb-3">PROJECT ACTIONS</h3>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" className="w-full justify-between">
@@ -167,8 +171,8 @@ export function Sidebar({
             </DropdownMenu>
           </div>
 
-          <div className="mb-6">
-            <h3 className="text-md font-medium text-slate-900 mb-3">Task Actions</h3>
+          <div className="mb-6 bg-white p-4 rounded-lg shadow-sm border border-slate-200">
+            <h3 className="text-sm uppercase tracking-wide text-slate-500 mb-3">TASK ACTIONS</h3>
             <div className="space-y-2">
               <Button 
                 variant="outline" 
