@@ -175,6 +175,30 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
     }
   }, [dependencyType, dependentTaskId, offsetDays, duration, skipWeekends, autoAdjustWeekends, project]);
 
+  // Auto-calculate duration when start and end dates change (manual mode only)
+  useEffect(() => {
+    if (dependencyType === "manual" && startDate && endDate) {
+      const timeDiff = endDate.getTime() - startDate.getTime();
+      const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24)) + 1;
+      if (daysDiff > 0 && daysDiff !== duration) {
+        setDuration(daysDiff);
+      }
+    }
+  }, [startDate, endDate, dependencyType]);
+
+  // Auto-calculate end date when start date and duration change (manual mode only)
+  useEffect(() => {
+    if (dependencyType === "manual" && startDate && duration && duration > 0) {
+      const newEndDate = new Date(startDate);
+      newEndDate.setDate(startDate.getDate() + duration - 1);
+      
+      // Only update if it's different to avoid infinite loops
+      if (!endDate || newEndDate.getTime() !== endDate.getTime()) {
+        setEndDate(newEndDate);
+      }
+    }
+  }, [startDate, duration, dependencyType]);
+
   const handleSave = () => {
     if (!name || !startDate || !endDate || !projectId) {
       toast({ title: "Please fill in all required fields", variant: "destructive" });
