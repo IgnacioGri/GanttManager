@@ -10,7 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, Upload, X, Download } from "lucide-react";
+import { CalendarIcon, Upload, X, Download, ChevronDown, Search } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { formatDate, formatDateForInput, parseInputDate, adjustDateForWeekends, addBusinessDays, calculateBusinessDays } from "@/lib/date-utils";
@@ -44,6 +45,8 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
   // Local states for manual date input
   const [startDateInput, setStartDateInput] = useState("");
   const [endDateInput, setEndDateInput] = useState("");
+  const [dependencySearch, setDependencySearch] = useState("");
+  const [isDependencyDropdownOpen, setIsDependencyDropdownOpen] = useState(false);
 
   const createTaskMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -335,26 +338,69 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
             <div className="space-y-4 bg-slate-50 p-4 rounded-lg">
               <div>
                 <Label>Depends on Tasks</Label>
-                <div className="space-y-2">
-                  {project?.tasks.filter(t => t.id !== task?.id).map((t) => (
-                    <div key={t.id} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`task-${t.id}`}
-                        checked={dependencies.includes(t.id.toString())}
-                        onCheckedChange={(checked) => {
-                          if (checked) {
-                            setDependencies(prev => [...prev, t.id.toString()]);
-                          } else {
-                            setDependencies(prev => prev.filter(id => id !== t.id.toString()));
-                          }
-                        }}
-                      />
-                      <Label htmlFor={`task-${t.id}`} className="text-sm">
-                        {t.name} (ends {formatDate(formatDateForInput(new Date(t.endDate)))})
-                      </Label>
+                <DropdownMenu open={isDependencyDropdownOpen} onOpenChange={setIsDependencyDropdownOpen}>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="w-full justify-between">
+                      <span>
+                        {dependencies.length === 0 
+                          ? "Select tasks..." 
+                          : `${dependencies.length} task${dependencies.length > 1 ? 's' : ''} selected`
+                        }
+                      </span>
+                      <ChevronDown className="w-4 h-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-[400px] p-0">
+                    <div className="p-3 border-b">
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+                        <Input
+                          placeholder="Search tasks..."
+                          value={dependencySearch}
+                          onChange={(e) => setDependencySearch(e.target.value)}
+                          className="pl-9"
+                        />
+                      </div>
                     </div>
-                  ))}
-                </div>
+                    <div className="max-h-60 overflow-y-auto">
+                      {project?.tasks
+                        .filter(t => t.id !== task?.id)
+                        .filter(t => t.name.toLowerCase().includes(dependencySearch.toLowerCase()))
+                        .map((t) => (
+                          <DropdownMenuItem
+                            key={t.id}
+                            onSelect={(e) => e.preventDefault()}
+                            className="flex items-center space-x-2 p-3"
+                          >
+                            <Checkbox
+                              id={`task-${t.id}`}
+                              checked={dependencies.includes(t.id.toString())}
+                              onCheckedChange={(checked) => {
+                                if (checked) {
+                                  setDependencies(prev => [...prev, t.id.toString()]);
+                                } else {
+                                  setDependencies(prev => prev.filter(id => id !== t.id.toString()));
+                                }
+                              }}
+                            />
+                            <div className="flex-1 min-w-0">
+                              <div className="text-sm font-medium">{t.name}</div>
+                              <div className="text-xs text-slate-500">
+                                ends {formatDate(formatDateForInput(new Date(t.endDate)))}
+                              </div>
+                            </div>
+                          </DropdownMenuItem>
+                        ))}
+                      {project?.tasks
+                        .filter(t => t.id !== task?.id)
+                        .filter(t => t.name.toLowerCase().includes(dependencySearch.toLowerCase())).length === 0 && (
+                        <div className="p-3 text-center text-slate-500 text-sm">
+                          No tasks found
+                        </div>
+                      )}
+                    </div>
+                  </DropdownMenuContent>
+                </DropdownMenu>
                 <p className="text-xs text-slate-500 mt-2">
                   Select one or more tasks that must be completed before this task can start
                 </p>
