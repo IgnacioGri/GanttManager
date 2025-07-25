@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { ZoomOut, ZoomIn, Maximize, MessageCircle, Paperclip, Edit3, Trash2, Minimize } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { ZoomOut, ZoomIn, Maximize, MessageCircle, Paperclip, Edit3, Trash2, Minimize, MoreHorizontal } from "lucide-react";
 import { createGanttTasks } from "@/lib/gantt-utils";
 import { formatDate } from "@/lib/date-utils";
 import type { ProjectWithTasks, Task } from "@shared/schema";
@@ -208,65 +209,71 @@ export function GanttChart({ project, timelineScale, showWeekends, onEditTask, o
         {/* Task list on the left */}
         <div className={`absolute top-0 left-0 ${isFullScreen ? 'w-[600px]' : isCollapsed ? 'w-80' : 'w-[480px]'} bg-white border-r border-slate-200 h-full overflow-y-auto z-10 transition-all duration-300`}>
           <div className="border-b border-slate-200 bg-slate-50 px-4 py-3 sticky top-0 h-[52px] flex items-center">
-            <div className="grid grid-cols-3 gap-4 w-full text-sm font-medium text-slate-700">
-              <span>Task Name</span>
-              <span className="text-center">Start</span>
-              <span className="text-center">End</span>
+            <div className="w-full flex items-center text-sm font-medium text-slate-700">
+              <div className="flex-1">Task Name</div>
+              <div className="w-20 text-center">Start</div>
+              <div className="w-20 text-center">End</div>
+              <div className="w-10"></div>
             </div>
           </div>
           {project.tasks.map((task, index) => (
             <div key={task.id} className="hover:bg-slate-50 group">
               <div className="px-3 h-[52px] flex items-center text-sm border-b border-slate-100">
                 <div className="w-full flex items-center">
-                  <div className="grid grid-cols-3 gap-4 flex-1">
-                    <div className="min-w-0">
-                      <div 
-                        className="font-medium text-slate-900 cursor-pointer hover:text-primary truncate"
-                        onClick={() => onEditTask(task)}
-                        title="Click to edit task"
-                      >
-                        {task.name}
-                      </div>
-                    </div>
-                    <div className="text-xs text-slate-500 text-center">
-                      {formatDate(task.startDate)}
-                    </div>
-                    <div className="text-xs text-slate-500 text-center">
-                      {formatDate(task.endDate)}
+                  <div className="flex-1 min-w-0 pr-4">
+                    <div 
+                      className="font-medium text-slate-900 cursor-pointer hover:text-primary truncate"
+                      onClick={() => onEditTask(task)}
+                      title="Click to edit task"
+                    >
+                      {task.name}
                     </div>
                   </div>
-                  <div className="flex items-center space-x-1 ml-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                    {task.comments && (
-                      <div className="w-2 h-2 bg-blue-500 rounded-full" title="Has comments" />
+                  <div className="w-20 text-xs text-slate-500 text-center">
+                    {formatDate(task.startDate)}
+                  </div>
+                  <div className="w-20 text-xs text-slate-500 text-center">
+                    {formatDate(task.endDate)}
+                  </div>
+                  <div className="w-10 flex justify-center">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="w-6 h-6 text-slate-400 hover:text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <MoreHorizontal className="w-4 h-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => onEditTask(task)}>
+                          <Edit3 className="w-4 h-4 mr-2" />
+                          Edit Task
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => onAddComment(task)}>
+                          <MessageCircle className="w-4 h-4 mr-2" />
+                          Add Comment
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onClick={() => onDeleteTask(task.id)}
+                          className="text-red-600 focus:text-red-600"
+                        >
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Delete Task
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                    {(task.comments || task.attachments.length > 0) && (
+                      <div className="flex items-center space-x-1 ml-1">
+                        {task.comments && (
+                          <div className="w-2 h-2 bg-blue-500 rounded-full" title="Has comments" />
+                        )}
+                        {task.attachments.length > 0 && (
+                          <div className="w-2 h-2 bg-amber-500 rounded-full" title="Has attachments" />
+                        )}
+                      </div>
                     )}
-                    {task.attachments.length > 0 && (
-                      <div className="w-2 h-2 bg-amber-500 rounded-full" title="Has attachments" />
-                    )}
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="w-5 h-5 text-slate-400 hover:text-primary"
-                      onClick={() => onAddComment(task)}
-                    >
-                      <MessageCircle className="w-3 h-3" />
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="w-5 h-5 text-slate-400 hover:text-primary"
-                      onClick={() => onEditTask(task)}
-                    >
-                      <Edit3 className="w-3 h-3" />
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="w-5 h-5 text-slate-400 hover:text-red-500"
-                      onClick={() => onDeleteTask(task.id)}
-                      title="Delete task"
-                    >
-                      <Trash2 className="w-3 h-3" />
-                    </Button>
                   </div>
                 </div>
               </div>
