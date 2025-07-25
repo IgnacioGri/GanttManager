@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { PlusCircle, FolderOpen, Download, ChevronLeft, ChevronRight, Plus, ChevronDown, Trash2 } from "lucide-react";
+import { PlusCircle, FolderOpen, Download, ChevronLeft, ChevronRight, Plus, ChevronDown, Trash2, FolderPlus } from "lucide-react";
 import { formatDate } from "@/lib/date-utils";
 import type { ProjectWithTasks } from "@shared/schema";
 
@@ -69,15 +69,15 @@ export function Sidebar({
       </Button>
       
       {isCollapsed ? (
-        <div className="space-y-2 mt-8">
+        <div className="space-y-2 mt-12">
           <Button variant="ghost" size="icon" onClick={onNewProject} title="New Project">
-            <PlusCircle className="w-4 h-4" />
+            <FolderPlus className="w-4 h-4" />
           </Button>
           <Button variant="ghost" size="icon" onClick={onShowProjects} title="Browse Projects">
             <FolderOpen className="w-4 h-4" />
           </Button>
           <Button variant="ghost" size="icon" onClick={onNewTask} disabled={!project} title="Add Task">
-            <PlusCircle className="w-4 h-4" />
+            <Plus className="w-4 h-4" />
           </Button>
         </div>
       ) : (
@@ -132,7 +132,7 @@ export function Sidebar({
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" className="w-full justify-between">
                   <span className="flex items-center">
-                    <PlusCircle className="w-4 h-4 mr-2" />
+                    <FolderPlus className="w-4 h-4 mr-2" />
                     Project Actions
                   </span>
                   <ChevronDown className="w-4 h-4" />
@@ -140,7 +140,7 @@ export function Sidebar({
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-full">
                 <DropdownMenuItem onClick={onNewProject}>
-                  <PlusCircle className="w-4 h-4 mr-2" />
+                  <FolderPlus className="w-4 h-4 mr-2" />
                   New Project
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={onShowProjects}>
