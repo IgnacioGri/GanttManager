@@ -38,6 +38,26 @@ export function GanttChart({ project, timelineScale, showWeekends, onEditTask, o
       endDate,
       duration
     });
+    
+    // Update dependent tasks when a parent task's dates change
+    if (project) {
+      const dependentTasks = project.tasks.filter(task => 
+        task.dependencies.includes(taskId)
+      );
+      
+      dependentTasks.forEach(depTask => {
+        const newStartDate = new Date(end);
+        newStartDate.setDate(newStartDate.getDate() + 1); // Start the day after dependency ends
+        
+        const newEndDate = new Date(newStartDate);
+        newEndDate.setDate(newStartDate.getDate() + depTask.duration - 1);
+        
+        onTaskUpdate(depTask.id, {
+          startDate: newStartDate.toISOString().split('T')[0],
+          endDate: newEndDate.toISOString().split('T')[0]
+        });
+      });
+    }
   };
 
   const handleProgressChange = (taskId: string, progress: number) => {

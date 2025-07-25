@@ -236,7 +236,22 @@ export class MemStorage implements IStorage {
   }
 
   async deleteTask(id: number): Promise<boolean> {
-    return this.tasks.delete(id);
+    const exists = this.tasks.has(id);
+    if (exists) {
+      // Remove the task
+      this.tasks.delete(id);
+      
+      // Update dependent tasks to remove this dependency
+      const taskIdStr = id.toString();
+      for (const task of this.tasks.values()) {
+        if (task.dependencies.includes(taskIdStr)) {
+          // Remove the deleted task from dependencies
+          task.dependencies = task.dependencies.filter(depId => depId !== taskIdStr);
+          task.updatedAt = new Date();
+        }
+      }
+    }
+    return exists;
   }
 }
 

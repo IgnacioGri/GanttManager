@@ -82,9 +82,17 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
       setSkipWeekends(task.skipWeekends);
       setAutoAdjustWeekends(task.autoAdjustWeekends);
       setAttachments(task.attachments);
-      setDependencyType("manual");
-      setDependentTaskId("");
-      setOffsetDays(0);
+      
+      // Check if this task has dependencies and restore dependency settings
+      if (task.dependencies.length > 0) {
+        setDependencyType("dependent");
+        setDependentTaskId(task.dependencies[0]);
+        setOffsetDays(0); // Could be enhanced to store this in the future
+      } else {
+        setDependencyType("manual");
+        setDependentTaskId("");
+        setOffsetDays(0);
+      }
     } else {
       // Reset form for new task
       setName("");
@@ -283,12 +291,16 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
                     value={startDate ? startDate.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: '2-digit' }) : ""}
                     onChange={(e) => {
                       const value = e.target.value;
-                      if (value.match(/^\d{2}\/\d{2}\/\d{2}$/)) {
-                        const [day, month, year] = value.split('/');
-                        const fullYear = parseInt(year) + 2000;
-                        const date = new Date(fullYear, parseInt(month) - 1, parseInt(day));
-                        if (!isNaN(date.getTime())) {
-                          setStartDate(date);
+                      // Allow partial input while typing
+                      if (value === "" || value.match(/^\d{0,2}(\/\d{0,2})?(\/\d{0,2})?$/)) {
+                        // Only update date when format is complete
+                        if (value.match(/^\d{2}\/\d{2}\/\d{2}$/)) {
+                          const [day, month, year] = value.split('/');
+                          const fullYear = parseInt(year) + 2000;
+                          const date = new Date(fullYear, parseInt(month) - 1, parseInt(day));
+                          if (!isNaN(date.getTime())) {
+                            setStartDate(date);
+                          }
                         }
                       }
                     }}
@@ -301,12 +313,24 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0">
-                      <Calendar
-                        mode="single"
-                        selected={startDate}
-                        onSelect={setStartDate}
-                        initialFocus
-                      />
+                      <div className="p-3">
+                        <Calendar
+                          mode="single"
+                          selected={startDate}
+                          onSelect={setStartDate}
+                          initialFocus
+                        />
+                        <div className="border-t pt-2 mt-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setStartDate(new Date())}
+                            className="w-full"
+                          >
+                            Hoy
+                          </Button>
+                        </div>
+                      </div>
                     </PopoverContent>
                   </Popover>
                 </div>
@@ -321,12 +345,16 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
                     value={endDate ? endDate.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: '2-digit' }) : ""}
                     onChange={(e) => {
                       const value = e.target.value;
-                      if (value.match(/^\d{2}\/\d{2}\/\d{2}$/)) {
-                        const [day, month, year] = value.split('/');
-                        const fullYear = parseInt(year) + 2000;
-                        const date = new Date(fullYear, parseInt(month) - 1, parseInt(day));
-                        if (!isNaN(date.getTime())) {
-                          setEndDate(date);
+                      // Allow partial input while typing
+                      if (value === "" || value.match(/^\d{0,2}(\/\d{0,2})?(\/\d{0,2})?$/)) {
+                        // Only update date when format is complete
+                        if (value.match(/^\d{2}\/\d{2}\/\d{2}$/)) {
+                          const [day, month, year] = value.split('/');
+                          const fullYear = parseInt(year) + 2000;
+                          const date = new Date(fullYear, parseInt(month) - 1, parseInt(day));
+                          if (!isNaN(date.getTime())) {
+                            setEndDate(date);
+                          }
                         }
                       }
                     }}
@@ -339,12 +367,24 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0">
-                      <Calendar
-                        mode="single"
-                        selected={endDate}
-                        onSelect={setEndDate}
-                        initialFocus
-                      />
+                      <div className="p-3">
+                        <Calendar
+                          mode="single"
+                          selected={endDate}
+                          onSelect={setEndDate}
+                          initialFocus
+                        />
+                        <div className="border-t pt-2 mt-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setEndDate(new Date())}
+                            className="w-full"
+                          >
+                            Hoy
+                          </Button>
+                        </div>
+                      </div>
                     </PopoverContent>
                   </Popover>
                 </div>
