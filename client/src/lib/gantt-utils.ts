@@ -12,15 +12,20 @@ export interface GanttTask {
 
 export function createGanttTasks(tasks: Task[]): GanttTask[] {
   return tasks.map(task => {
-    // Parse dates consistently and ensure end date includes the full day
+    // Parse dates consistently - Frappe Gantt treats end date as exclusive
+    // So if we want the bar to end on the actual end date, we need to add one day
     const startDate = new Date(task.startDate + 'T00:00:00');
-    const endDate = new Date(task.endDate + 'T23:59:59');
+    const endDate = new Date(task.endDate + 'T00:00:00');
+    
+    // Add one day to end date for Frappe Gantt since it treats end date as exclusive
+    const ganttEndDate = new Date(endDate);
+    ganttEndDate.setDate(ganttEndDate.getDate() + 1);
     
     return {
       id: task.id.toString(),
       name: task.name,
       start: startDate.toISOString().split('T')[0],
-      end: endDate.toISOString().split('T')[0],
+      end: ganttEndDate.toISOString().split('T')[0],
       progress: task.progress,
       dependencies: task.dependencies.join(','),
       custom_class: getTaskColorClass(task.progress)

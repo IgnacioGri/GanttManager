@@ -31,7 +31,8 @@ export function GanttChart({ project, timelineScale, showWeekends, onEditTask, o
     
     // Ensure we're working with dates at midnight UTC to avoid timezone issues
     const startUTC = new Date(start.getFullYear(), start.getMonth(), start.getDate());
-    const endUTC = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+    // Subtract one day from end date since Frappe Gantt treats end as exclusive
+    const endUTC = new Date(end.getFullYear(), end.getMonth(), end.getDate() - 1);
     
     const startDate = startUTC.toISOString().split('T')[0];
     const endDate = endUTC.toISOString().split('T')[0];
