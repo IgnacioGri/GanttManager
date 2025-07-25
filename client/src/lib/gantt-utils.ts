@@ -11,15 +11,21 @@ export interface GanttTask {
 }
 
 export function createGanttTasks(tasks: Task[]): GanttTask[] {
-  return tasks.map(task => ({
-    id: task.id.toString(),
-    name: task.name,
-    start: task.startDate,
-    end: task.endDate,
-    progress: task.progress,
-    dependencies: task.dependencies.join(','),
-    custom_class: getTaskColorClass(task.progress)
-  }));
+  return tasks.map(task => {
+    // Parse dates consistently and ensure end date includes the full day
+    const startDate = new Date(task.startDate + 'T00:00:00');
+    const endDate = new Date(task.endDate + 'T23:59:59');
+    
+    return {
+      id: task.id.toString(),
+      name: task.name,
+      start: startDate.toISOString().split('T')[0],
+      end: endDate.toISOString().split('T')[0],
+      progress: task.progress,
+      dependencies: task.dependencies.join(','),
+      custom_class: getTaskColorClass(task.progress)
+    };
+  });
 }
 
 function getTaskColorClass(progress: number): string {

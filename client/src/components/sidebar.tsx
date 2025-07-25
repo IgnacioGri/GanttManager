@@ -96,6 +96,21 @@ export function Sidebar({
                   <span className="font-medium">{calculateProgress(project)}%</span>
                 </div>
               </div>
+              <div className="mt-4 pt-4 border-t border-slate-200">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => {
+                    if (confirm('¿Estás seguro de que quieres eliminar este proyecto? Se eliminarán todas las tareas asociadas.')) {
+                      // Add delete project functionality here
+                      console.log('Delete project:', project.id);
+                    }
+                  }}
+                  className="w-full text-red-600 hover:text-red-700 hover:bg-red-50"
+                >
+                  Eliminar Proyecto
+                </Button>
+              </div>
             </div>
           )}
 
