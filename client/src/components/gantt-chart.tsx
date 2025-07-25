@@ -206,8 +206,9 @@ export function GanttChart({ project, timelineScale, showWeekends, onEditTask, o
       </div>
 
       <div className="flex-1 bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden relative">
-        {/* Task list on the left */}
-        <div className={`absolute top-0 left-0 ${isFullScreen ? 'w-[600px]' : isCollapsed ? 'w-80' : 'w-[480px]'} bg-white border-r border-slate-200 h-full overflow-y-auto z-10 transition-all duration-300`}>
+        {/* Task list on the left - hidden in full screen */}
+        {!isFullScreen && (
+          <div className={`absolute top-0 left-0 ${isCollapsed ? 'w-80' : 'w-[480px]'} bg-white border-r border-slate-200 h-full overflow-y-auto z-10 transition-all duration-300`}>
           <div className="border-b border-slate-200 bg-slate-50 px-4 py-3 sticky top-0 h-[52px] flex items-center">
             <div className="w-full flex items-center text-sm font-medium text-slate-700">
               <div className="flex-1">Task Name</div>
@@ -279,10 +280,11 @@ export function GanttChart({ project, timelineScale, showWeekends, onEditTask, o
               </div>
             </div>
           ))}
-        </div>
+          </div>
+        )}
         
         {/* Gantt chart container */}
-        <div className={`${isFullScreen ? 'ml-[600px]' : isCollapsed ? 'ml-80' : 'ml-[480px]'} h-full transition-all duration-300`}>
+        <div className={`${isFullScreen ? 'ml-0' : isCollapsed ? 'ml-80' : 'ml-[480px]'} h-full transition-all duration-300`}>
           <div ref={ganttRef} className="gantt-container h-full overflow-auto"></div>
         </div>
       </div>
