@@ -1,0 +1,130 @@
+
+
+Lista de Testeo - GanttFlow
+
+1. Gestión de Proyectos
+
+ Crear proyecto nuevo solo con nombre y fecha inicio (sin End Date)
+
+anda bien
+ Verificar que End Date se calcula automáticamente desde las tareas
+
+anda bien
+ Editar proyecto existente (End Date debe ser requerido)
+
+Anda bien
+ Eliminar proyecto
+
+No vi un boton para eliminar
+ Navegar entre proyectos usando "Browse Projects"
+
+anda bien
+
+2. Gestión de Tareas
+
+ Crear tarea nueva con todos los campos básicos
+
+anda bien
+ Editar tarea existente
+
+⁠anda bien
+ Eliminar tarea y verificar que dependencias se actualizan
+
+esto anda mal, cuando arrastro una fecha:
+
+nunca se queda en el lugar donde la arrastro, ponele que estaba en el 15, la llevo al 10 y cuando se actualiza queda en el 22
+Ademas nunca coinciden bien las fechas, en el gantt dice 20, en modal dice 20 pero en la lista de tasks siempre dice un dia menos, en este caso 19
+Cuando elimino una tarea, las dependientes se glishean y la fecha se vuelve loca, hagamos esto, si borro una tarea, cualquier dependiente pasa a empezar despues de la tarea superior a la que elimine, si no habia queda como ingreso de fecha manual en donde estaba cuando elimine
+ Verificar que al eliminar tarea, las dependientes pierden la referencia
+
+
+
+3. Cálculo Automático de Fechas
+
+ Start Date + End Date → Duration: Ingresar fechas y verificar cálculo automático de duración
+
+bien
+ Start Date + Duration → End Date: Ingresar duración y verificar cálculo automático de End Date
+
+bien
+ Verificar formato DD/MM/AA en todos los campos de fecha
+
+bien
+ Usar botón "Hoy" en todos los calendarios
+
+bien
+
+4. Edición Manual de Fechas
+
+ Escribir fecha manualmente en formato DD/MM/AA
+
+no me deja
+ Verificar que acepta escritura mientras tecleas
+
+no me deja
+ Probar fechas inválidas y verificar manejo de errores
+
+5. Sistema de Dependencias
+
+ Crear tarea dependiente de otra tarea
+bien
+ Verificar que al abrir modal de tarea dependiente, muestra correctamente el tipo de dependencia
+bien
+ Cambiar tipo de dependencia (Manual ↔ Dependent)
+bien
+ Configurar offset days en dependencias
+
+anda bien pero se ve afectado por todo lo otro que te dije de las fechas que no coinciden
+ Activar/desactivar "Skip Weekends" y "Auto-adjust Weekends"
+bien
+
+6. Funcionalidad del Gantt
+
+ Arrastrar tarea padre y verificar que dependientes se mueven automáticamente
+
+ya lo comente antes
+ Cambiar escala de tiempo (Day/Week/Month)
+bien
+ Activar/desactivar visualización de fines de semana
+bien
+ Verificar transparencia de barras basada en progreso (0% sólido, 100% translúcido)
+bien
+
+
+
+7. Sistema de Archivos Adjuntos
+
+ Subir archivo a una tarea
+bien
+ Descargar archivo adjunto
+no me deja, no hay boton de descargar
+ Eliminar archivo adjunto
+bien
+ Verificar límites de tamaño de archivo
+
+8. Sistema de Comentarios
+
+todo bien
+
+
+
+Exportación Excel
+
+bien
+
+
+
+10. Interfaz de Usuario
+
+ Colapsar/expandir sidebar
+bien
+ Verificar funcionalidad en sidebar colapsado
+bien
+ Probar responsividad en diferentes tamaños de pantalla
+bien
+ Verificar que todos los botones tienen tooltips apropiados
+bien
+
+11. Validaciones y Errores
+
+parece todo bien

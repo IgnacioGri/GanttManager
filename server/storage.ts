@@ -236,22 +236,43 @@ export class MemStorage implements IStorage {
   }
 
   async deleteTask(id: number): Promise<boolean> {
-    const exists = this.tasks.has(id);
-    if (exists) {
-      // Remove the task
-      this.tasks.delete(id);
+    const taskToDelete = this.tasks.get(id);
+    if (!taskToDelete) return false;
+    
+    // Find all tasks that depend on this task
+    const dependentTasks = Array.from(this.tasks.values()).filter(task => 
+      task.dependencies.includes(id.toString())
+    );
+    
+    // For each dependent task, update its dependencies according to user's requirement
+    dependentTasks.forEach(task => {
+      // Remove the deleted task from dependencies
+      task.dependencies = task.dependencies.filter(depId => depId !== id.toString());
       
-      // Update dependent tasks to remove this dependency
-      const taskIdStr = id.toString();
-      for (const task of this.tasks.values()) {
-        if (task.dependencies.includes(taskIdStr)) {
-          // Remove the deleted task from dependencies
-          task.dependencies = task.dependencies.filter(depId => depId !== taskIdStr);
-          task.updatedAt = new Date();
-        }
+      // Find tasks from the same project, sorted by start date
+      const projectTasks = Array.from(this.tasks.values())
+        .filter(t => t.projectId === task.projectId && t.id !== id)
+        .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
+      
+      // Find the task that comes before the deleted task in chronological order
+      const deletedTaskStartDate = new Date(taskToDelete.startDate);
+      const previousTask = projectTasks
+        .filter(t => new Date(t.startDate) < deletedTaskStartDate)
+        .pop(); // Get the last one (closest to the deleted task)
+      
+      if (previousTask) {
+        // Make it depend on the previous task
+        task.dependencies = [previousTask.id.toString()];
+      } else {
+        // No previous task found, convert to manual mode (no dependencies)
+        task.dependencies = [];
       }
-    }
-    return exists;
+      
+      task.updatedAt = new Date();
+      this.tasks.set(task.id, task);
+    });
+    
+    return this.tasks.delete(id);
   }
 }
 

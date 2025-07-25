@@ -27,11 +27,16 @@ export function GanttChart({ project, timelineScale, showWeekends, onEditTask, o
 
   const handleDateChange = (taskId: string, start: Date, end: Date) => {
     const id = parseInt(taskId);
-    const startDate = start.toISOString().split('T')[0];
-    const endDate = end.toISOString().split('T')[0];
     
-    // Calculate duration including weekends for now
-    const duration = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+    // Ensure we're working with dates at midnight UTC to avoid timezone issues
+    const startUTC = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+    const endUTC = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+    
+    const startDate = startUTC.toISOString().split('T')[0];
+    const endDate = endUTC.toISOString().split('T')[0];
+    
+    // Calculate duration correctly
+    const duration = Math.ceil((endUTC.getTime() - startUTC.getTime()) / (1000 * 60 * 60 * 24)) + 1;
     
     onTaskUpdate(id, { 
       startDate, 
@@ -46,7 +51,7 @@ export function GanttChart({ project, timelineScale, showWeekends, onEditTask, o
       );
       
       dependentTasks.forEach(depTask => {
-        const newStartDate = new Date(end);
+        const newStartDate = new Date(endUTC);
         newStartDate.setDate(newStartDate.getDate() + 1); // Start the day after dependency ends
         
         const newEndDate = new Date(newStartDate);

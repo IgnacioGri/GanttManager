@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, Upload, X } from "lucide-react";
+import { CalendarIcon, Upload, X, Download } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { adjustDateForWeekends, formatDateForInput, parseInputDate, addBusinessDays } from "@/lib/date-utils";
@@ -184,7 +184,7 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
         setDuration(daysDiff);
       }
     }
-  }, [startDate, endDate, dependencyType]);
+  }, [startDate, endDate, dependencyType, duration]);
 
   // Auto-calculate end date when start date and duration change (manual mode only)
   useEffect(() => {
@@ -193,7 +193,7 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
       newEndDate.setDate(startDate.getDate() + duration - 1);
       
       // Only update if it's different to avoid infinite loops
-      if (!endDate || newEndDate.getTime() !== endDate.getTime()) {
+      if (!endDate || Math.abs(newEndDate.getTime() - endDate.getTime()) > 24 * 60 * 60 * 1000 / 2) {
         setEndDate(newEndDate);
       }
     }
@@ -485,14 +485,34 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
                       <span className="text-sm font-medium">{file.name}</span>
                       <span className="text-xs text-slate-500">{(file.size / 1024 / 1024).toFixed(1)} MB</span>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => removeAttachment(index)}
-                      className="text-slate-400 hover:text-red-500"
-                    >
-                      <X className="w-4 h-4" />
-                    </Button>
+                    <div className="flex items-center space-x-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => {
+                          // Create a download link for the file
+                          const link = document.createElement('a');
+                          link.href = `data:${file.type};base64,${file.data}`;
+                          link.download = file.name;
+                          document.body.appendChild(link);
+                          link.click();
+                          document.body.removeChild(link);
+                        }}
+                        className="text-slate-400 hover:text-blue-500"
+                        title="Download file"
+                      >
+                        <Download className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => removeAttachment(index)}
+                        className="text-slate-400 hover:text-red-500"
+                        title="Remove file"
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -505,7 +525,7 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
               <Checkbox
                 id="skipWeekends"
                 checked={skipWeekends}
-                onCheckedChange={setSkipWeekends}
+                onCheckedChange={(checked) => setSkipWeekends(checked === true)}
               />
               <Label htmlFor="skipWeekends" className="text-sm">
                 Skip weekends in duration calculation
@@ -515,7 +535,7 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
               <Checkbox
                 id="autoAdjust"
                 checked={autoAdjustWeekends}
-                onCheckedChange={setAutoAdjustWeekends}
+                onCheckedChange={(checked) => setAutoAdjustWeekends(checked === true)}
               />
               <Label htmlFor="autoAdjust" className="text-sm">
                 Auto-adjust start date if falls on weekend
