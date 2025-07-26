@@ -47,6 +47,10 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
   const [endDateInput, setEndDateInput] = useState("");
   const [dependencySearch, setDependencySearch] = useState("");
   const [isDependencyDropdownOpen, setIsDependencyDropdownOpen] = useState(false);
+  
+  // Date synchronization states
+  const [syncedTaskId, setSyncedTaskId] = useState<number | null>(null);
+  const [syncType, setSyncType] = useState<string>("");
 
   const createTaskMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -89,6 +93,8 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
       setSkipWeekends(task.skipWeekends);
       setAutoAdjustWeekends(task.autoAdjustWeekends);
       setAttachments(task.attachments);
+      setSyncedTaskId(task.syncedTaskId || null);
+      setSyncType(task.syncType || "");
       
       // Update date inputs
       setStartDateInput(task.startDate ? formatDate(formatDateForInput(new Date(task.startDate))) : "");
@@ -116,6 +122,8 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
       setSkipWeekends(true);
       setAutoAdjustWeekends(true);
       setAttachments([]);
+      setSyncedTaskId(null);
+      setSyncType("");
       
       // Reset date inputs
       setStartDateInput("");
@@ -293,6 +301,8 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
       attachments,
       skipWeekends,
       autoAdjustWeekends,
+      syncedTaskId,
+      syncType: syncedTaskId ? syncType : null,
     };
 
     if (task) {
@@ -422,6 +432,61 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
               </div>
             </div>
           )}
+
+          {/* Date Synchronization Section */}
+          <div>
+            <Label>Date Synchronization (Optional)</Label>
+            <p className="text-xs text-slate-500 mb-3">
+              Sync this task's dates with another task. When the reference task changes, this task updates automatically.
+            </p>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Reference Task</Label>
+                <Select value={syncedTaskId?.toString() || ""} onValueChange={(value) => setSyncedTaskId(value ? parseInt(value) : null)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a task" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">No sync</SelectItem>
+                    {project?.tasks
+                      .filter(t => t.id !== task?.id)
+                      .map((t) => (
+                        <SelectItem key={t.id} value={t.id.toString()}>
+                          {t.name}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div>
+                <Label>Sync Type</Label>
+                <Select value={syncType} onValueChange={setSyncType} disabled={!syncedTaskId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select sync type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="start-start">Start together</SelectItem>
+                    <SelectItem value="end-end">End together</SelectItem>
+                    <SelectItem value="start-end">Start when reference ends</SelectItem>
+                    <SelectItem value="end-start">End when reference starts</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            
+            {syncedTaskId && syncType && (
+              <div className="mt-2 p-3 bg-blue-50 rounded-lg">
+                <p className="text-sm text-blue-700">
+                  {syncType === "start-start" && "This task will start on the same day as the reference task."}
+                  {syncType === "end-end" && "This task will end on the same day as the reference task."}
+                  {syncType === "start-end" && "This task will start when the reference task ends."}
+                  {syncType === "end-start" && "This task will end when the reference task starts."}
+                </p>
+              </div>
+            )}
+          </div>
 
           {dependencyType === "manual" && (
             <div className="grid grid-cols-2 gap-4">

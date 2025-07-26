@@ -24,6 +24,9 @@ export const tasks = pgTable("tasks", {
   attachments: json("attachments").$type<{name: string, size: number, type: string, data: string}[]>().default([]).notNull(),
   skipWeekends: boolean("skip_weekends").default(true).notNull(),
   autoAdjustWeekends: boolean("auto_adjust_weekends").default(true).notNull(),
+  // Date synchronization fields
+  syncedTaskId: integer("synced_task_id"), // ID of the task to sync with
+  syncType: text("sync_type"), // "start-start" | "end-end" | "start-end" | "end-start"
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -46,6 +49,8 @@ export const insertTaskSchema = createInsertSchema(tasks).pick({
   attachments: true,
   skipWeekends: true,
   autoAdjustWeekends: true,
+  syncedTaskId: true,
+  syncType: true,
 });
 
 export const updateTaskSchema = insertTaskSchema.partial().extend({

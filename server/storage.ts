@@ -59,6 +59,8 @@ export class MemStorage implements IStorage {
         attachments: [],
         skipWeekends: true,
         autoAdjustWeekends: true,
+        syncedTaskId: null,
+        syncType: null,
         createdAt: new Date(),
         updatedAt: new Date()
       },
@@ -75,6 +77,8 @@ export class MemStorage implements IStorage {
         attachments: [],
         skipWeekends: true,
         autoAdjustWeekends: true,
+        syncedTaskId: null,
+        syncType: null,
         createdAt: new Date(),
         updatedAt: new Date()
       },
@@ -91,6 +95,8 @@ export class MemStorage implements IStorage {
         attachments: [],
         skipWeekends: true,
         autoAdjustWeekends: true,
+        syncedTaskId: null,
+        syncType: null,
         createdAt: new Date(),
         updatedAt: new Date()
       },
@@ -107,6 +113,8 @@ export class MemStorage implements IStorage {
         attachments: [],
         skipWeekends: true,
         autoAdjustWeekends: true,
+        syncedTaskId: null,
+        syncType: null,
         createdAt: new Date(),
         updatedAt: new Date()
       },
@@ -123,6 +131,8 @@ export class MemStorage implements IStorage {
         attachments: [],
         skipWeekends: true,
         autoAdjustWeekends: true,
+        syncedTaskId: null,
+        syncType: null,
         createdAt: new Date(),
         updatedAt: new Date()
       },
@@ -139,6 +149,8 @@ export class MemStorage implements IStorage {
         attachments: [],
         skipWeekends: true,
         autoAdjustWeekends: true,
+        syncedTaskId: null,
+        syncType: null,
         createdAt: new Date(),
         updatedAt: new Date()
       }
@@ -239,7 +251,61 @@ export class MemStorage implements IStorage {
       updatedAt: new Date()
     };
     this.tasks.set(id, updatedTask);
+    
+    // If this task's dates changed, update any synced tasks
+    if ((updateData.startDate && updateData.startDate !== task.startDate) || 
+        (updateData.endDate && updateData.endDate !== task.endDate)) {
+      await this.updateSyncedTasks(id);
+    }
+    
     return updatedTask;
+  }
+
+  // Helper method to update tasks that are synced to this task
+  private async updateSyncedTasks(sourceTaskId: number): Promise<void> {
+    const sourceTask = this.tasks.get(sourceTaskId);
+    if (!sourceTask) return;
+
+    // Find all tasks that are synced to this source task
+    const syncedTasks = Array.from(this.tasks.values()).filter(task => 
+      task.syncedTaskId === sourceTaskId && task.syncType
+    );
+
+    for (const syncedTask of syncedTasks) {
+      const updates = this.calculateSyncedDates(sourceTask, syncedTask.syncType);
+      if (updates) {
+        const updatedSyncedTask: Task = {
+          ...syncedTask,
+          ...updates,
+          updatedAt: new Date()
+        };
+        this.tasks.set(syncedTask.id, updatedSyncedTask);
+      }
+    }
+  }
+
+  // Calculate new dates based on sync type
+  private calculateSyncedDates(sourceTask: Task, syncType: string): { startDate?: string; endDate?: string } | null {
+    switch (syncType) {
+      case "start-start":
+        // Both tasks start on the same day
+        return { startDate: sourceTask.startDate };
+      
+      case "end-end":
+        // Both tasks end on the same day
+        return { endDate: sourceTask.endDate };
+      
+      case "start-end":
+        // Synced task starts when source task ends
+        return { startDate: sourceTask.endDate };
+      
+      case "end-start":
+        // Synced task ends when source task starts
+        return { endDate: sourceTask.startDate };
+      
+      default:
+        return null;
+    }
   }
 
   async deleteTask(id: number): Promise<boolean> {
