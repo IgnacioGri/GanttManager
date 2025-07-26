@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ZoomOut, ZoomIn, Maximize, MessageCircle, Paperclip, Edit3, Trash2, Minimize, MoreHorizontal } from "lucide-react";
@@ -119,23 +119,28 @@ export function GanttChart({ project, timelineScale, showWeekends, onEditTask, o
     }, 50);
   };
 
-  useEffect(() => {
+  // Function to create/recreate the Gantt chart
+  const createGanttChart = useCallback(() => {
     if (!ganttRef.current || !project?.tasks.length) return;
 
-    // Clear previous instance
+    console.log('=== GANTT CHART CREATION/RECREATION ===');
+    console.log('Show weekends:', showWeekends);
+    console.log('Timeline scale:', timelineScale);
+    
+    // COMPLETELY DESTROY the previous instance and clear the container
     if (ganttInstance.current) {
+      console.log('Destroying previous Gantt instance');
       ganttInstance.current = null;
+    }
+    
+    // Clear the entire container HTML to force complete re-render
+    if (ganttRef.current) {
+      ganttRef.current.innerHTML = '';
     }
 
     const tasks = createGanttTasks(project.tasks);
 
     try {
-      // Debug logging
-      console.log('=== GANTT INITIALIZATION ===');
-      console.log('Show weekends:', showWeekends);
-      console.log('Timeline scale:', timelineScale);
-      console.log('Project tasks:', project.tasks.length);
-      
       // Custom options for Gantt library
       const ganttOptions: any = {
         view_mode: timelineScale,
@@ -150,196 +155,97 @@ export function GanttChart({ project, timelineScale, showWeekends, onEditTask, o
           }
         },
         on_date_change: (task: any, start: Date, end: Date) => {
-          // Update task dates when dragged in Gantt
           handleDateChange(task.id, start, end);
         },
         on_progress_change: (task: any, progress: number) => {
-          // Update task progress when changed in Gantt
           handleProgressChange(task.id, progress);
         }
       };
 
-      // Add weekend/holiday configuration - FIXED LOGIC
+      // Add weekend/holiday configuration - CORRECTED LOGIC
       if (showWeekends) {
         // Show weekends but mark holidays
         ganttOptions.ignore = getArgentineHolidays();
         ganttOptions.holidays = {
           'rgba(255, 0, 0, 0.3)': getArgentineHolidays()
         };
-        console.log('SHOWING weekends, ignoring only holidays:', ganttOptions.ignore);
+        console.log('✅ SHOWING weekends, ignoring only holidays:', ganttOptions.ignore);
       } else {
         // Hide weekends AND holidays
         ganttOptions.ignore = ['weekend', ...getArgentineHolidays()];
-        console.log('HIDING weekends and holidays:', ganttOptions.ignore);
+        console.log('🚫 HIDING weekends and holidays:', ganttOptions.ignore);
       }
 
-      console.log('Creating Gantt with options:', ganttOptions);
+      console.log('Creating FRESH Gantt instance with options:', ganttOptions);
       ganttInstance.current = new window.Gantt(ganttRef.current, tasks, ganttOptions);
-      
-      // Manual weekend hiding - comprehensive approach
-      setTimeout(() => {
-        console.log('=== WEEKEND CONTROL CHECK ===');
-        console.log('showWeekends state:', showWeekends);
-        console.log('Should hide weekends:', !showWeekends);
-        
-        if (!showWeekends && ganttRef.current) {
-          console.log('=== EXECUTING WEEKEND HIDING (manual backup) ===');
-          
-          // Method 1: Hide via CSS class manipulation
-          const ganttContainer = ganttRef.current;
-          
-          // Method 2: Direct column manipulation
-          const allColumns = ganttContainer.querySelectorAll('.gantt-grid-column');
-          const headerCells = ganttContainer.querySelectorAll('.gantt-grid-header .gantt-grid-cell');
-          
-          console.log('Found columns:', allColumns.length, 'Header cells:', headerCells.length);
-          
-          headerCells.forEach((header: any, index: number) => {
-            const headerText = header.textContent?.trim() || '';
-            console.log('Processing header:', headerText, 'at index:', index);
-            
-            // Multiple date parsing attempts
-            let dateToCheck: Date | null = null;
-            const currentYear = new Date().getFullYear();
-            
-            // Try parsing as "Jan 15" format
-            if (headerText.match(/^\w{3}\s+\d{1,2}$/)) {
-              dateToCheck = new Date(`${headerText} ${currentYear}`);
-            }
-            
-            // Try parsing as number (day of month)
-            if (!dateToCheck || isNaN(dateToCheck.getTime())) {
-              const dayNum = parseInt(headerText);
-              if (!isNaN(dayNum) && dayNum >= 1 && dayNum <= 31) {
-                const currentDate = new Date();
-                dateToCheck = new Date(currentDate.getFullYear(), currentDate.getMonth(), dayNum);
-              }
-            }
-            
-            if (dateToCheck && !isNaN(dateToCheck.getTime())) {
-              const dayOfWeek = dateToCheck.getDay();
-              if (dayOfWeek === 0 || dayOfWeek === 6) { // Sunday or Saturday
-                console.log('Hiding weekend:', headerText, dateToCheck, 'Day of week:', dayOfWeek);
-                
-                // Hide header
-                (header as HTMLElement).style.display = 'none';
-                (header as HTMLElement).style.visibility = 'hidden';
-                (header as HTMLElement).style.width = '0';
-                
-                // Hide corresponding column
-                const correspondingColumn = allColumns[index] as HTMLElement;
-                if (correspondingColumn) {
-                  correspondingColumn.style.display = 'none';
-                  correspondingColumn.style.visibility = 'hidden';
-                  correspondingColumn.style.width = '0';
-                }
-                
-                // Try alternative selectors
-                const altColumns = ganttContainer.querySelectorAll(`[data-column="${index}"], .gantt-column-${index}`);
-                altColumns.forEach((col) => {
-                  (col as HTMLElement).style.display = 'none';
-                  (col as HTMLElement).style.visibility = 'hidden';
-                  (col as HTMLElement).style.width = '0';
-                });
-              }
-            }
-          });
-          
-          // Method 3: CSS injection for weekend hiding
-          const weekendStyle = document.getElementById('weekend-hide-style');
-          if (weekendStyle) {
-            weekendStyle.remove();
-          }
-          
-          const style = document.createElement('style');
-          style.id = 'weekend-hide-style';
-          style.textContent = `
-            .gantt .gantt-grid-header .gantt-grid-cell:nth-child(7n+1),
-            .gantt .gantt-grid-header .gantt-grid-cell:nth-child(7n+7),
-            .gantt .gantt-grid-body .gantt-grid-column:nth-child(7n+1),
-            .gantt .gantt-grid-body .gantt-grid-column:nth-child(7n+7) {
-              display: none !important;
-              width: 0 !important;
-              visibility: hidden !important;
-            }
-          `;
-          document.head.appendChild(style);
-        } else {
-          console.log('=== SHOWING WEEKENDS - cleaning up manual overrides ===');
-          // Remove weekend hiding styles when showing weekends
-          const weekendStyle = document.getElementById('weekend-hide-style');
-          if (weekendStyle) {
-            weekendStyle.remove();
-          }
-          
-          // Restore visibility
-          if (ganttRef.current) {
-            const allElements = ganttRef.current.querySelectorAll('.gantt-grid-header .gantt-grid-cell, .gantt-grid-body .gantt-grid-column');
-            allElements.forEach((el) => {
-              (el as HTMLElement).style.display = '';
-              (el as HTMLElement).style.visibility = '';
-              (el as HTMLElement).style.width = '';
-            });
-          }
-        }
-      }, 300);
-      
-      // Apply custom styling after initialization
-      setTimeout(() => {
-        
-        project.tasks.forEach((task, index) => {
-          // Phase-based colors
-          const getTaskColor = (taskName: string) => {
-            const name = taskName.toLowerCase();
-            if (name.includes('planning') || name.includes('project')) return '#8b5cf6'; // Purple
-            if (name.includes('design') || name.includes('ui') || name.includes('ux')) return '#06b6d4'; // Cyan
-            if (name.includes('development') || name.includes('frontend') || name.includes('backend')) return '#3b82f6'; // Blue
-            if (name.includes('testing') || name.includes('qa')) return '#f59e0b'; // Amber
-            if (name.includes('deployment') || name.includes('launch')) return '#10b981'; // Green
-            return '#6366f1'; // Default indigo
-          };
-          
-          const baseColor = getTaskColor(task.name);
-          
-          // Calculate opacity based on progress: 0% = solid (1.0), 100% = very transparent (0.3)
-          const opacity = 1.0 - (task.progress / 100) * 0.7;
-          
-          const taskBar = ganttRef.current?.querySelector(`[data-id="${task.id}"] .bar`);
-          if (taskBar) {
-            // Convert hex to rgba with calculated opacity
-            const r = parseInt(baseColor.slice(1, 3), 16);
-            const g = parseInt(baseColor.slice(3, 5), 16);
-            const b = parseInt(baseColor.slice(5, 7), 16);
-            (taskBar as HTMLElement).style.backgroundColor = `rgba(${r}, ${g}, ${b}, ${opacity})`;
-            
-            // Add hover effect that highlights corresponding row
-            (taskBar as HTMLElement).addEventListener('mouseenter', () => {
-              const taskRow = document.querySelector(`[data-task-id="${task.id}"]`);
-              if (taskRow) {
-                taskRow.classList.add('bg-blue-50');
-              }
-            });
-            
-            (taskBar as HTMLElement).addEventListener('mouseleave', () => {
-              const taskRow = document.querySelector(`[data-task-id="${task.id}"]`);
-              if (taskRow) {
-                taskRow.classList.remove('bg-blue-50');
-              }
-            });
-          }
-        });
-      }, 100);
-      
+      console.log('✅ Gantt instance created successfully');
     } catch (error) {
-      console.error('Failed to initialize Gantt chart:', error);
+      console.error('❌ Error creating Gantt chart:', error);
     }
+  }, [project?.tasks, showWeekends, timelineScale, onEditTask, handleDateChange, handleProgressChange]);
 
+  // Effect that ALWAYS recreates the chart when dependencies change
+  useEffect(() => {
+    createGanttChart();
+  }, [createGanttChart]);
+
+  // Apply task colors after chart creation
+  useEffect(() => {
+    if (ganttInstance.current) {
+      setTimeout(() => {
+        applyTaskColors();
+      }, 100);
+    }
+  }, [project?.tasks]);
+
+  // Cleanup effect
+  useEffect(() => {
     return () => {
+      // Cleanup on unmount
       if (ganttInstance.current) {
         ganttInstance.current = null;
       }
+      
+      // Remove any injected styles
+      const weekendStyle = document.getElementById('weekend-hide-style');
+      if (weekendStyle) {
+        weekendStyle.remove();
+      }
     };
-  }, [project, timelineScale, showWeekends]);
+  }, []);
+
+  const applyTaskColors = () => {
+    if (!ganttRef.current || !project?.tasks) return;
+    
+    project.tasks.forEach((task, index) => {
+      setTimeout(() => {
+        // Phase-based colors
+        const getTaskColor = (taskName: string) => {
+          const name = taskName.toLowerCase();
+          if (name.includes('planning') || name.includes('project')) return '#8b5cf6'; // Purple
+          if (name.includes('design') || name.includes('ui') || name.includes('ux')) return '#06b6d4'; // Cyan
+          if (name.includes('development') || name.includes('frontend') || name.includes('backend')) return '#3b82f6'; // Blue
+          if (name.includes('testing') || name.includes('qa')) return '#f59e0b'; // Amber
+          if (name.includes('deployment') || name.includes('launch')) return '#10b981'; // Green
+          return '#6366f1'; // Default indigo
+        };
+        
+        const baseColor = getTaskColor(task.name);
+        
+        // Calculate opacity based on progress: 0% = solid (1.0), 100% = very transparent (0.3)
+        const opacity = 1.0 - (task.progress / 100) * 0.7;
+        
+        const taskBar = ganttRef.current?.querySelector(`[data-id="${task.id}"] .bar`);
+        if (taskBar) {
+          // Convert hex to rgba with calculated opacity
+          const r = parseInt(baseColor.slice(1, 3), 16);
+          const g = parseInt(baseColor.slice(3, 5), 16);
+          const b = parseInt(baseColor.slice(5, 7), 16);
+          (taskBar as HTMLElement).style.backgroundColor = `rgba(${r}, ${g}, ${b}, ${opacity})`;
+        }
+      }, 50);
+    });
+  };
 
   if (!project) {
     return (
