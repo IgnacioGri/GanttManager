@@ -131,8 +131,10 @@ export function GanttChart({ project, timelineScale, showWeekends, onEditTask, o
 
     try {
       // Debug logging
+      console.log('=== GANTT INITIALIZATION ===');
       console.log('Show weekends:', showWeekends);
       console.log('Timeline scale:', timelineScale);
+      console.log('Project tasks:', project.tasks.length);
       
       // Custom options for Gantt library
       const ganttOptions: any = {
@@ -174,8 +176,12 @@ export function GanttChart({ project, timelineScale, showWeekends, onEditTask, o
       
       // Manual weekend hiding - comprehensive approach
       setTimeout(() => {
+        console.log('=== WEEKEND CONTROL CHECK ===');
+        console.log('showWeekends state:', showWeekends);
+        console.log('Should hide weekends:', !showWeekends);
+        
         if (!showWeekends && ganttRef.current) {
-          console.log('Attempting manual weekend hiding...');
+          console.log('=== EXECUTING WEEKEND HIDING ===');
           
           // Method 1: Hide via CSS class manipulation
           const ganttContainer = ganttRef.current;
@@ -430,11 +436,15 @@ export function GanttChart({ project, timelineScale, showWeekends, onEditTask, o
             {/* Weekend Control */}
             <div className="flex items-center gap-2">
               <button
-                onClick={() => onWeekendToggle(!showWeekends)}
+                onClick={() => {
+                  console.log('Weekend toggle clicked. Current state:', showWeekends);
+                  console.log('Calling onWeekendToggle with:', !showWeekends);
+                  onWeekendToggle(!showWeekends);
+                }}
                 className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${
-                  showWeekends
-                    ? 'bg-blue-100 text-blue-900'
-                    : 'bg-slate-100 text-slate-600 hover:text-slate-900'
+                  !showWeekends
+                    ? 'bg-red-100 text-red-900'
+                    : 'bg-blue-100 text-blue-900'
                 }`}
               >
                 {showWeekends ? 'Hide Weekends' : 'Show Weekends'}

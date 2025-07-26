@@ -63,6 +63,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.patch("/api/projects/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      console.log('PATCH project', id, 'with data:', req.body);
+      const validatedData = insertProjectSchema.partial().parse(req.body);
+      const project = await storage.updateProject(id, validatedData);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+      console.log('Updated project:', project);
+      res.json(project);
+    } catch (error) {
+      console.error('PATCH project error:', error);
+      res.status(400).json({ message: "Invalid project data" });
+    }
+  });
+
   app.delete("/api/projects/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
@@ -124,31 +141,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get all tasks in the project to fix dependencies
       const allTasks = await storage.getTasksByProject(taskToDelete.projectId);
       
-      // Find tasks that depend on the task being deleted
+      // Remove task ID from dependencies of other tasks
       const dependentTasks = allTasks.filter(task => 
-        task.dependencyType === 'dependent' && task.dependentTaskId === id
+        task.dependencies.includes(id.toString())
       );
       
-      // Update dependent tasks
+      // Update dependent tasks by removing the deleted task from their dependencies
       for (const dependentTask of dependentTasks) {
-        // Find the previous task (the one that the deleted task depended on)
-        const deletedTaskDependency = taskToDelete.dependentTaskId;
-        
-        if (deletedTaskDependency) {
-          // Make the dependent task depend on the deleted task's dependency
-          await storage.updateTask({
-            id: dependentTask.id,
-            dependentTaskId: deletedTaskDependency,
-            dependencyType: 'dependent'
-          });
-        } else {
-          // If deleted task had no dependency, switch dependent tasks to manual
-          await storage.updateTask({
-            id: dependentTask.id,
-            dependencyType: 'manual',
-            dependentTaskId: null
-          });
-        }
+        const updatedDependencies = dependentTask.dependencies.filter(dep => dep !== id.toString());
+        await storage.updateTask({
+          id: dependentTask.id,
+          dependencies: updatedDependencies
+        });
       }
       
       // Delete the task
