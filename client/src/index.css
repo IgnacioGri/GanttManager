@@ -149,10 +149,10 @@
 
 /* Dependency arrows styling */
 .gantt-container .gantt-dependency-arrow {
-  stroke: #94a3b8 !important;
+  stroke: #e2e8f0 !important;
   stroke-width: 1px !important;
-  stroke-dasharray: 3,3 !important;
-  opacity: 0.7 !important;
+  stroke-dasharray: 4,4 !important;
+  opacity: 0.4 !important;
 }
 
 /* Progress bars styling */

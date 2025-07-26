@@ -1,10 +1,12 @@
-import { useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ZoomOut, ZoomIn, Maximize, MessageCircle, Paperclip, Edit3, Trash2, Minimize, MoreHorizontal } from "lucide-react";
 import { createGanttTasks } from "@/lib/gantt-utils";
 import { formatDate } from "@/lib/date-utils";
 import type { ProjectWithTasks, Task } from "@shared/schema";
+
+type TaskFilter = "all" | "pending" | "in-progress" | "completed";
 
 interface GanttChartProps {
   project?: ProjectWithTasks;
@@ -28,6 +30,7 @@ declare global {
 export function GanttChart({ project, timelineScale, showWeekends, onEditTask, onAddComment, onTaskUpdate, onDeleteTask, isCollapsed, isFullScreen = false, onToggleFullScreen }: GanttChartProps) {
   const ganttRef = useRef<HTMLDivElement>(null);
   const ganttInstance = useRef<any>(null);
+  const [taskFilter, setTaskFilter] = useState<TaskFilter>("all");
 
   const handleDateChange = (taskId: string, start: Date, end: Date) => {
     const id = parseInt(taskId);
@@ -215,16 +218,44 @@ export function GanttChart({ project, timelineScale, showWeekends, onEditTask, o
           </div>
           {/* Filter buttons */}
           <div className="flex bg-slate-100 rounded-lg p-1 ml-6">
-            <button className="px-3 py-1 text-xs font-medium text-slate-600 hover:text-slate-900 rounded-md transition-all">
+            <button 
+              onClick={() => setTaskFilter("all")}
+              className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${
+                taskFilter === "all" 
+                  ? 'bg-white text-slate-900 shadow-sm' 
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
               All Tasks
             </button>
-            <button className="px-3 py-1 text-xs font-medium text-slate-600 hover:text-slate-900 rounded-md transition-all">
+            <button 
+              onClick={() => setTaskFilter("pending")}
+              className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${
+                taskFilter === "pending" 
+                  ? 'bg-white text-slate-900 shadow-sm' 
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
               Pending
             </button>
-            <button className="px-3 py-1 text-xs font-medium text-slate-600 hover:text-slate-900 rounded-md transition-all">
+            <button 
+              onClick={() => setTaskFilter("in-progress")}
+              className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${
+                taskFilter === "in-progress" 
+                  ? 'bg-white text-slate-900 shadow-sm' 
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
               In Progress
             </button>
-            <button className="px-3 py-1 text-xs font-medium text-slate-600 hover:text-slate-900 rounded-md transition-all">
+            <button 
+              onClick={() => setTaskFilter("completed")}
+              className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${
+                taskFilter === "completed" 
+                  ? 'bg-white text-slate-900 shadow-sm' 
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
               Completed
             </button>
           </div>
@@ -259,7 +290,13 @@ export function GanttChart({ project, timelineScale, showWeekends, onEditTask, o
               <div className="w-10"></div>
             </div>
           </div>
-          {project.tasks.map((task, index) => (
+          {project.tasks.filter((task) => {
+            if (taskFilter === "all") return true;
+            if (taskFilter === "pending") return task.progress === 0;
+            if (taskFilter === "in-progress") return task.progress > 0 && task.progress < 100;
+            if (taskFilter === "completed") return task.progress === 100;
+            return true;
+          }).map((task, index) => (
             <div key={task.id} className="hover:bg-blue-50 group transition-colors" data-task-id={task.id}>
               <div className="px-3 h-[52px] flex items-center text-sm border-b border-slate-100">
                 <div className="w-full flex items-center">
