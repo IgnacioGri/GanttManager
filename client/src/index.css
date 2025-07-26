@@ -155,6 +155,27 @@
   opacity: 0.2 !important;
 }
 
+/* Weekend and holiday styling */
+.gantt-container .weekend-column {
+  background-color: #f8fafc !important;
+  opacity: 0.6 !important;
+}
+
+.gantt-container .holiday-column {
+  background-color: #fef2f2 !important;
+  opacity: 0.8 !important;
+}
+
+.gantt-container .weekend-column .gantt-date {
+  color: #94a3b8 !important;
+  font-weight: 400 !important;
+}
+
+.gantt-container .holiday-column .gantt-date {
+  color: #dc2626 !important;
+  font-weight: 500 !important;
+}
+
 /* Progress bars styling */
 .gantt-container .gantt-bar-progress {
   fill: rgba(255, 255, 255, 0.4) !important;
