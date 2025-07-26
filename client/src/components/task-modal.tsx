@@ -443,12 +443,12 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>Reference Task</Label>
-                <Select value={syncedTaskId?.toString() || ""} onValueChange={(value) => setSyncedTaskId(value ? parseInt(value) : null)}>
+                <Select value={syncedTaskId?.toString() || "no-sync"} onValueChange={(value) => setSyncedTaskId(value === "no-sync" ? null : parseInt(value))}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select a task" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">No sync</SelectItem>
+                    <SelectItem value="no-sync">No sync</SelectItem>
                     {project?.tasks
                       .filter(t => t.id !== task?.id)
                       .map((t) => (
