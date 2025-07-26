@@ -576,13 +576,10 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
                   type="number"
                   value={offsetDays}
                   onFocus={(e) => {
-                    e.target.select();
-                    setTimeout(() => e.target.select(), 0);
+                    setTimeout(() => e.target.select(), 10);
                   }}
-                  onKeyDown={(e) => {
-                    if (e.key >= '0' && e.key <= '9') {
-                      e.target.value = '';
-                    }
+                  onClick={(e) => {
+                    e.target.select();
                   }}
                   onChange={(e) => setOffsetDays(parseInt(e.target.value) || 0)}
                   min="0"
@@ -827,13 +824,10 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
                 value={duration}
                 disabled={dependencyType === "sync" && syncType === "start-end-together"}
                 onFocus={(e) => {
-                  e.target.select();
-                  setTimeout(() => e.target.select(), 0);
+                  setTimeout(() => e.target.select(), 10);
                 }}
-                onKeyDown={(e) => {
-                  if (e.key >= '0' && e.key <= '9') {
-                    e.target.value = '';
-                  }
+                onClick={(e) => {
+                  e.target.select();
                 }}
                 onChange={(e) => {
                   const newDuration = parseInt(e.target.value) || 1;
