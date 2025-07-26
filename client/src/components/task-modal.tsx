@@ -35,7 +35,7 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
   const [duration, setDuration] = useState(1);
   const [progress, setProgress] = useState([0]);
   const [dependencies, setDependencies] = useState<string[]>([]);
-  const [dependencyType, setDependencyType] = useState<"manual" | "dependent">("manual");
+  const [dependencyType, setDependencyType] = useState<"manual" | "dependent" | "sync">("manual");
 
   const [offsetDays, setOffsetDays] = useState(0);
   const [skipWeekends, setSkipWeekends] = useState(true);
@@ -100,10 +100,9 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
       setStartDateInput(task.startDate ? formatDate(formatDateForInput(new Date(task.startDate))) : "");
       setEndDateInput(task.endDate ? formatDate(formatDateForInput(new Date(task.endDate))) : "");
       
-      // Check if this task has sync configuration first, then dependencies
+      // Check task configuration and set appropriate mode
       if (task.syncedTaskId && task.syncType) {
-        // If task has sync, use manual mode (sync overrides dependencies)
-        setDependencyType("manual");
+        setDependencyType("sync");
         setOffsetDays(0);
       } else if (task.dependencies.length > 0) {
         setDependencyType("dependent");
@@ -294,8 +293,8 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
     let adjustedStartDate = startDate;
     let adjustedEndDate = endDate;
     
-    // If sync is configured, calculate dates based on synced task
-    if (syncedTaskId && syncType && project) {
+    // If sync mode is selected, calculate dates based on synced task
+    if (dependencyType === "sync" && syncedTaskId && syncType && project) {
       const syncedTask = project.tasks.find(t => t.id === syncedTaskId);
       if (syncedTask) {
         switch (syncType) {
@@ -321,8 +320,10 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
       adjustedStartDate = adjustDateForWeekends(startDate);
     }
 
-    // Set dependencies based on type - dependencies array already contains multiple task IDs
-    let finalDependencies = dependencies;
+    // Set dependencies and sync based on type
+    let finalDependencies = dependencyType === "dependent" ? dependencies : [];
+    let finalSyncedTaskId = dependencyType === "sync" ? syncedTaskId : null;
+    let finalSyncType = dependencyType === "sync" && syncedTaskId ? syncType : null;
 
     const taskData = {
       projectId,
@@ -336,8 +337,8 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
       attachments,
       skipWeekends,
       autoAdjustWeekends,
-      syncedTaskId,
-      syncType: syncedTaskId ? syncType : null,
+      syncedTaskId: finalSyncedTaskId,
+      syncType: finalSyncType,
     };
 
     if (task) {
@@ -367,7 +368,19 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
 
           <div>
             <Label>Date Configuration</Label>
-            <RadioGroup value={dependencyType} onValueChange={(value) => setDependencyType(value as "manual" | "dependent")}>
+            <RadioGroup value={dependencyType} onValueChange={(value) => {
+              setDependencyType(value as "manual" | "dependent" | "sync");
+              // Clear sync settings when switching away from sync mode
+              if (value !== "sync") {
+                setSyncedTaskId(null);
+                setSyncType("");
+              }
+              // Clear dependencies when switching away from dependent mode
+              if (value !== "dependent") {
+                setDependencies([]);
+                setOffsetDays(0);
+              }
+            }}>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="manual" id="manual" />
                 <Label htmlFor="manual">Manual date selection</Label>
@@ -375,6 +388,10 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="dependent" id="dependent" />
                 <Label htmlFor="dependent">Start after another task</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="sync" id="sync" />
+                <Label htmlFor="sync">Sync with another task</Label>
               </div>
             </RadioGroup>
           </div>
@@ -468,22 +485,16 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
             </div>
           )}
 
-          {/* Date Synchronization Section */}
-          <div>
-            <Label>Date Synchronization (Optional)</Label>
-            <p className="text-xs text-slate-500 mb-3">
-              Sync this task's dates with another task. <strong>This overrides dependency calculations</strong> - use this when tasks should happen at the same time, not one after another.
-            </p>
-            
-            <div className="grid grid-cols-2 gap-4">
+          {dependencyType === "sync" && (
+            <div className="space-y-4 bg-blue-50 p-4 rounded-lg">
               <div>
                 <Label>Reference Task</Label>
                 <Select value={syncedTaskId?.toString() || "no-sync"} onValueChange={(value) => setSyncedTaskId(value === "no-sync" ? null : parseInt(value))}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select a task" />
+                    <SelectValue placeholder="Select a task to sync with" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="no-sync">No sync</SelectItem>
+                    <SelectItem value="no-sync">Select a task...</SelectItem>
                     {project?.tasks
                       .filter(t => t.id !== task?.id)
                       .map((t) => (
@@ -499,7 +510,7 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
                 <Label>Sync Type</Label>
                 <Select value={syncType} onValueChange={setSyncType} disabled={!syncedTaskId}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select sync type" />
+                    <SelectValue placeholder="How should tasks sync?" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="start-start">Start together</SelectItem>
@@ -509,21 +520,25 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
                   </SelectContent>
                 </Select>
               </div>
+              
+              {syncedTaskId && syncType && (
+                <div className="p-3 bg-white border border-blue-200 rounded-lg">
+                  <p className="text-sm text-blue-700">
+                    {syncType === "start-start" && "This task will start on the same day as the reference task."}
+                    {syncType === "end-end" && "This task will end on the same day as the reference task."}
+                    {syncType === "start-end" && "This task will start when the reference task ends."}
+                    {syncType === "end-start" && "This task will end when the reference task starts."}
+                  </p>
+                </div>
+              )}
+              
+              <p className="text-xs text-slate-600">
+                Dates will be automatically calculated based on the reference task. Manual date selection will be disabled.
+              </p>
             </div>
-            
-            {syncedTaskId && syncType && (
-              <div className="mt-2 p-3 bg-blue-50 rounded-lg">
-                <p className="text-sm text-blue-700">
-                  {syncType === "start-start" && "This task will start on the same day as the reference task."}
-                  {syncType === "end-end" && "This task will end on the same day as the reference task."}
-                  {syncType === "start-end" && "This task will start when the reference task ends."}
-                  {syncType === "end-start" && "This task will end when the reference task starts."}
-                </p>
-              </div>
-            )}
-          </div>
+          )}
 
-          {dependencyType === "manual" && (
+          {(dependencyType === "manual" || dependencyType === "sync") && (
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>Start Date</Label>
@@ -532,6 +547,7 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
                     type="text"
                     placeholder="DD/MM/YY"
                     value={startDateInput}
+                    disabled={dependencyType === "sync"}
                     onChange={(e) => {
                       const value = e.target.value;
                       setStartDateInput(value);
@@ -556,7 +572,7 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
                   />
                   <Popover>
                     <PopoverTrigger asChild>
-                      <Button variant="outline" size="icon">
+                      <Button variant="outline" size="icon" disabled={dependencyType === "sync"}>
                         <CalendarIcon className="w-4 h-4" />
                       </Button>
                     </PopoverTrigger>
@@ -603,6 +619,7 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
                     type="text"
                     placeholder="DD/MM/YY"
                     value={endDateInput}
+                    disabled={dependencyType === "sync"}
                     onChange={(e) => {
                       const value = e.target.value;
                       setEndDateInput(value);
@@ -625,7 +642,7 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
                   />
                   <Popover>
                     <PopoverTrigger asChild>
-                      <Button variant="outline" size="icon">
+                      <Button variant="outline" size="icon" disabled={dependencyType === "sync"}>
                         <CalendarIcon className="w-4 h-4" />
                       </Button>
                     </PopoverTrigger>
