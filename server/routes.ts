@@ -152,9 +152,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Update synced tasks when a reference task is modified
       const allTasks = await storage.getTasksByProject(task.projectId);
+      console.log("=== SYNC UPDATE DEBUG ===");
+      console.log("Updated task ID:", id);
+      console.log("All tasks in project:", allTasks.map(t => ({ id: t.id, name: t.name, syncedTaskId: t.syncedTaskId, syncType: t.syncType })));
+      
       const syncedTasks = allTasks.filter(t => 
-        t.syncedTaskId && t.syncedTaskId === id.toString() && t.id !== id
+        t.syncedTaskId && t.syncedTaskId === id && t.id !== id
       );
+      console.log("Found synced tasks:", syncedTasks.length);
 
       for (const syncedTask of syncedTasks) {
         let updatedData: any = {};
@@ -192,7 +197,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
         
         if (Object.keys(updatedData).length > 1) { // More than just id
+          console.log("Updating synced task:", syncedTask.name, "with data:", updatedData);
           await storage.updateTask(updatedData);
+          console.log("✅ Synced task updated successfully");
         }
       }
 
