@@ -210,6 +210,57 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
     }
   }, [dependencyType, dependencies, offsetDays, duration, skipWeekends, autoAdjustWeekends, project, syncedTaskId]);
 
+  // Auto-fill dates when sync configuration changes
+  useEffect(() => {
+    if (dependencyType === "sync" && syncedTaskId && syncType && project) {
+      const syncedTask = project.tasks.find(t => t.id === syncedTaskId);
+      if (syncedTask) {
+        console.log("=== AUTO-FILLING SYNC DATES ===");
+        console.log("Synced task:", syncedTask);
+        console.log("Sync type:", syncType);
+        
+        // Inherit weekend settings from the synced task
+        setSkipWeekends(syncedTask.skipWeekends);
+        setAutoAdjustWeekends(syncedTask.autoAdjustWeekends);
+        
+        let newStartDate: Date;
+        let newEndDate: Date;
+        
+        switch (syncType) {
+          case "start-start":
+            newStartDate = parseInputDate(syncedTask.startDate);
+            newEndDate = calculateEndDateFromDuration(newStartDate, duration);
+            break;
+          case "end-end":
+            newEndDate = parseInputDate(syncedTask.endDate);
+            newStartDate = calculateStartDateFromEndAndDuration(newEndDate, duration);
+            break;
+          case "start-end-together":
+            newStartDate = parseInputDate(syncedTask.startDate);
+            newEndDate = parseInputDate(syncedTask.endDate);
+            // Update duration to match the synced task
+            const calculatedDuration = calculateDurationFromDates(newStartDate, newEndDate);
+            setDuration(calculatedDuration);
+            break;
+          default:
+            return;
+        }
+        
+        // Update all date-related state
+        setStartDate(newStartDate);
+        setEndDate(newEndDate);
+        setStartDateInput(formatDate(formatDateForInput(newStartDate)));
+        setEndDateInput(formatDate(formatDateForInput(newEndDate)));
+        
+        console.log("Auto-filled dates:", {
+          start: formatDate(formatDateForInput(newStartDate)),
+          end: formatDate(formatDateForInput(newEndDate)),
+          duration: syncType === "start-end-together" ? calculateDurationFromDates(newStartDate, newEndDate) : duration
+        });
+      }
+    }
+  }, [dependencyType, syncedTaskId, syncType, project, duration]);
+
   // Manual calculation functions to avoid useEffect loops
   const calculateDurationFromDates = (start: Date, end: Date): number => {
     const timeDiff = end.getTime() - start.getTime();
