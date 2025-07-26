@@ -215,6 +215,12 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
     return newEndDate;
   };
 
+  const calculateStartDateFromEndAndDuration = (end: Date, days: number): Date => {
+    const result = new Date(end);
+    result.setDate(result.getDate() - days + 1);
+    return result;
+  };
+
   const validateDate = (dateString: string): boolean => {
     // Check format first
     if (!dateString.match(/^\d{2}\/\d{2}\/\d{2}$/)) {
@@ -282,7 +288,32 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
     }
 
     let adjustedStartDate = startDate;
-    if (autoAdjustWeekends && dependencyType === "manual") {
+    let adjustedEndDate = endDate;
+    
+    // If sync is configured, calculate dates based on synced task
+    if (syncedTaskId && syncType && project) {
+      const syncedTask = project.tasks.find(t => t.id === syncedTaskId);
+      if (syncedTask) {
+        switch (syncType) {
+          case "start-start":
+            adjustedStartDate = parseInputDate(syncedTask.startDate);
+            adjustedEndDate = calculateEndDateFromDuration(adjustedStartDate, duration);
+            break;
+          case "end-end":
+            adjustedEndDate = parseInputDate(syncedTask.endDate);
+            adjustedStartDate = calculateStartDateFromEndAndDuration(adjustedEndDate, duration);
+            break;
+          case "start-end":
+            adjustedStartDate = parseInputDate(syncedTask.endDate);
+            adjustedEndDate = calculateEndDateFromDuration(adjustedStartDate, duration);
+            break;
+          case "end-start":
+            adjustedEndDate = parseInputDate(syncedTask.startDate);
+            adjustedStartDate = calculateStartDateFromEndAndDuration(adjustedEndDate, duration);
+            break;
+        }
+      }
+    } else if (autoAdjustWeekends && dependencyType === "manual") {
       adjustedStartDate = adjustDateForWeekends(startDate);
     }
 
@@ -293,7 +324,7 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
       projectId,
       name,
       startDate: formatDateForInput(adjustedStartDate),
-      endDate: formatDateForInput(endDate),
+      endDate: formatDateForInput(adjustedEndDate),
       duration,
       progress: progress[0],
       dependencies: finalDependencies,
@@ -437,7 +468,7 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
           <div>
             <Label>Date Synchronization (Optional)</Label>
             <p className="text-xs text-slate-500 mb-3">
-              Sync this task's dates with another task. When the reference task changes, this task updates automatically.
+              Sync this task's dates with another task. <strong>This overrides dependency calculations</strong> - use this when tasks should happen at the same time, not one after another.
             </p>
             
             <div className="grid grid-cols-2 gap-4">
