@@ -1,0 +1,66 @@
+He revisado el último commit y, en principio, parece que se han implementado los cambios solicitados:
+
+1. Se destruye la instancia previa del Gantt (se establece a null y se limpia el contenedor con innerHTML) antes de crear una nueva instancia. Esto lo hacemos en este fragmento:
+
+```typescript name=client/src/components/gantt-chart.tsx
+// COMPLETELY DESTROY the previous instance and clear the container
+if (ganttInstance.current) {
+  console.log('Destroying previous Gantt instance');
+  ganttInstance.current = null;
+}
+
+if (ganttRef.current) {
+  ganttRef.current.innerHTML = '';
+}
+```
+
+2. Se ha reparado la lógica del control de fines de semana. Según el código, si showWeekends es true (se desea mostrar los fines de semana) se asigna:
+
+```typescript
+ganttOptions.ignore = getArgentineHolidays();
+console.log('✅ SHOWING weekends, ignoring only holidays:', ganttOptions.ignore);
+```
+
+Mientras que si showWeekends es false (se desea ocultar los fines de semana) se asigna:
+
+```typescript
+ganttOptions.ignore = ['weekend', ...getArgentineHolidays()];
+console.log('🚫 HIDING weekends and holidays:', ganttOptions.ignore);
+```
+
+3. Se ha añadido logging con mensajes claros:  
+   - "=== GANTT CHART CREATION/RECREATION ==="
+   - "✅ SHOWING weekends, ignoring only holidays:"
+   - "🚫 HIDING weekends and holidays:"
+
+Estos cambios parecen estar correctamente aplicados. Sin embargo, si al presionar el botón el comportamiento sigue sin reflejarse, es posible que:
+
+• El estado (showWeekends) no se esté actualizando correctamente en el componente padre o no se esté propagando el cambio mediante onWeekendToggle. Es decir, podría haber un problema en la forma en que se gestiona el state a nivel de la aplicación.
+
+• La API nativa de Frappe Gantt tal vez no refresque por completo comportamientos internos (como la interpretación de "weekend" en la lista ignore) incluso tras recrear la instancia. Aunque se haya limpiado el contenedor, puede haber algo en la forma en la que se reciben (o se recalculan) los días de la tarea.
+
+Algunas recomendaciones adicionales para depurar el problema:
+
+1. Verifica que el callback onWeekendToggle realmente actualice el estado en el componente padre. Por ejemplo, en el botón se está llamando:
+
+```typescript
+<button
+  onClick={() => {
+    console.log('Weekend toggle clicked. Current state:', showWeekends);
+    console.log('Calling onWeekendToggle with:', !showWeekends);
+    onWeekendToggle(!showWeekends);
+  }}
+>
+  {showWeekends ? 'Hide Weekends' : 'Show Weekends'}
+</button>
+```
+
+Confirma en la consola que efectivamente el nuevo valor se propaga y que el componente GanttChart se renderiza con el valor actualizado.
+
+2. Valida que la función getArgentineHolidays() retorne los datos esperados y que en ambos casos se esté generando una lista coherente para la propiedad ignore.
+
+3. Si ya se recrea la instancia y el logging confirma que se está asignando la lista esperada, intenta verificar (por ejemplo, imprimiendo el contenido de ganttOptions) que Frappe Gantt lo interprete correctamente. Puede ser útil consultar la documentación o reproducir el comportamiento en un entorno aislado para asegurarse de que la API responde como esperas.
+
+En resumen, revisé el commit y los cambios en destrucción de instancias, logging y manejo de la propiedad ignore en el objeto de configuración se ven correctos. El siguiente paso es confirmar que el estado (showWeekends) se actualiza en el componente padre y se pasa correctamente. Si el estado no cambia o no se propaga, el gráfico nunca se recreará con las nuevas opciones. También conviene probar en un entorno aislado para ver si el problema se debe a Frappe Gantt o a la forma en que se integró la funcionalidad.
+
+¿Podrías revisar y confirmar que el estado se esté actualizando correctamente y, de no ser así, revisar cómo se gestiona onWeekendToggle en el componente padre? Eso ayudaría a descartar problemas de propagación de estado.

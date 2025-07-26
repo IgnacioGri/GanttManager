@@ -179,6 +179,19 @@ export function GanttChart({ project, timelineScale, showWeekends, onEditTask, o
       console.log('Creating FRESH Gantt instance with options:', ganttOptions);
       ganttInstance.current = new window.Gantt(ganttRef.current, tasks, ganttOptions);
       console.log('✅ Gantt instance created successfully');
+      
+      // CRITICAL: Frappe Gantt ignores the 'weekend' option, so we need manual DOM manipulation
+      if (!showWeekends) {
+        setTimeout(() => {
+          console.log('🔧 Applying manual weekend hiding as Frappe Gantt API failed');
+          hideWeekendsManually();
+        }, 200);
+      } else {
+        // Clean up any previous manual weekend hiding
+        setTimeout(() => {
+          showWeekendsManually();
+        }, 200);
+      }
     } catch (error) {
       console.error('❌ Error creating Gantt chart:', error);
     }
@@ -213,6 +226,83 @@ export function GanttChart({ project, timelineScale, showWeekends, onEditTask, o
       }
     };
   }, []);
+
+  // Manual weekend hiding function - because Frappe Gantt ignores 'weekend' option
+  const hideWeekendsManually = () => {
+    if (!ganttRef.current) return;
+    
+    console.log('🔧 Manually hiding weekend columns');
+    
+    // Remove existing style
+    const existingStyle = document.getElementById('weekend-hide-style');
+    if (existingStyle) {
+      existingStyle.remove();
+    }
+    
+    // Find all date headers and identify weekends
+    const headerCells = ganttRef.current.querySelectorAll('.gantt-header .grid-row:first-child .grid-col');
+    const bodyColumns = ganttRef.current.querySelectorAll('.gantt-body .grid-col');
+    
+    console.log('Found header cells:', headerCells.length, 'body columns:', bodyColumns.length);
+    
+    headerCells.forEach((header, index) => {
+      const headerText = header.textContent?.trim() || '';
+      
+      // Parse the date from various formats Frappe Gantt might use
+      let dateToCheck: Date | null = null;
+      const currentYear = new Date().getFullYear();
+      
+      // Try "Jan 26" format
+      const monthDayMatch = headerText.match(/^(\w{3})\s+(\d{1,2})$/);
+      if (monthDayMatch) {
+        dateToCheck = new Date(`${monthDayMatch[1]} ${monthDayMatch[2]} ${currentYear}`);
+      }
+      
+      // Try just number format (day of month)
+      if (!dateToCheck || isNaN(dateToCheck.getTime())) {
+        const dayNum = parseInt(headerText);
+        if (!isNaN(dayNum) && dayNum >= 1 && dayNum <= 31) {
+          const today = new Date();
+          dateToCheck = new Date(today.getFullYear(), today.getMonth(), dayNum);
+        }
+      }
+      
+      if (dateToCheck && !isNaN(dateToCheck.getTime())) {
+        const dayOfWeek = dateToCheck.getDay();
+        if (dayOfWeek === 0 || dayOfWeek === 6) { // Sunday (0) or Saturday (6)
+          console.log('🚫 Hiding weekend column:', headerText, 'Day:', dayOfWeek);
+          
+          // Hide header
+          (header as HTMLElement).style.display = 'none';
+          
+          // Hide corresponding body column
+          const bodyColumn = bodyColumns[index];
+          if (bodyColumn) {
+            (bodyColumn as HTMLElement).style.display = 'none';
+          }
+        }
+      }
+    });
+  };
+  
+  // Manual weekend showing function
+  const showWeekendsManually = () => {
+    if (!ganttRef.current) return;
+    
+    console.log('✅ Manually showing weekend columns');
+    
+    // Remove weekend hide style
+    const existingStyle = document.getElementById('weekend-hide-style');
+    if (existingStyle) {
+      existingStyle.remove();
+    }
+    
+    // Restore all columns
+    const allColumns = ganttRef.current.querySelectorAll('.gantt-header .grid-col, .gantt-body .grid-col');
+    allColumns.forEach(col => {
+      (col as HTMLElement).style.display = '';
+    });
+  };
 
   const applyTaskColors = () => {
     if (!ganttRef.current || !project?.tasks) return;
