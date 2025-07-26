@@ -9,6 +9,15 @@ Gantt Manager is a modern web application for creating and managing Gantt charts
 Preferred communication style: Simple, everyday language.
 Default timeline scale: Days (changed from Week to provide more detailed daily view by default)
 
+## Recent Changes
+
+### Weekend Control Feature - COMPLETED (January 26, 2025)
+- Successfully implemented functional weekend hide/show toggle after multiple iterations
+- Issue resolved: Frappe Gantt library ignores native `ignore: ['weekend']` option
+- Solution: Hybrid approach using native API + manual DOM manipulation as fallback
+- Feature now working: User can toggle weekend visibility in Gantt chart timeline
+- Implementation includes intelligent date parsing and column detection for reliable operation
+
 ## System Architecture
 
 ### Frontend Architecture
