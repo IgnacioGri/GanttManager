@@ -131,7 +131,7 @@ export function GanttChart({ project, timelineScale, showWeekends, onEditTask, o
 
     try {
       // Custom options for Gantt library with holidays support
-      const ignorePeriods = showWeekends ? getArgentineHolidays() : ['weekend', ...getArgentineHolidays()];
+      const ignoreList = showWeekends ? getArgentineHolidays() : ['weekend', ...getArgentineHolidays()];
       
       const ganttOptions: any = {
         view_mode: timelineScale,
@@ -139,7 +139,10 @@ export function GanttChart({ project, timelineScale, showWeekends, onEditTask, o
         language: 'en',
         readonly: false,
         show_today_line: true,
-        ignore_periods: ignorePeriods,
+        ignore: ignoreList,
+        holidays: {
+          'rgba(255, 0, 0, 0.2)': getArgentineHolidays()
+        },
         on_click: (task: any) => {
           const originalTask = project.tasks.find(t => t.id.toString() === task.id);
           if (originalTask) {
