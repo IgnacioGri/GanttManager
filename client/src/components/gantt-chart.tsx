@@ -172,47 +172,108 @@ export function GanttChart({ project, timelineScale, showWeekends, onEditTask, o
       console.log('Creating Gantt with options:', ganttOptions);
       ganttInstance.current = new window.Gantt(ganttRef.current, tasks, ganttOptions);
       
-      // Manual weekend hiding if ignore option doesn't work
-      if (!showWeekends) {
-        setTimeout(() => {
+      // Manual weekend hiding - comprehensive approach
+      setTimeout(() => {
+        if (!showWeekends && ganttRef.current) {
+          console.log('Attempting manual weekend hiding...');
+          
+          // Method 1: Hide via CSS class manipulation
           const ganttContainer = ganttRef.current;
-          if (ganttContainer) {
-            // Try to find and hide weekend columns manually
-            const headers = ganttContainer.querySelectorAll('.gantt-grid-header .gantt-grid-cell');
-            headers.forEach((header: any, index: number) => {
-              const text = header.textContent;
-              if (text) {
-                // Try to parse date and check if it's weekend
-                const currentYear = new Date().getFullYear();
-                let testDate = new Date(`${text} ${currentYear}`);
-                
-                if (isNaN(testDate.getTime())) {
-                  // Try different date parsing
-                  const parts = text.split(' ');
-                  if (parts.length >= 2) {
-                    testDate = new Date(`${parts[0]} ${parts[1]} ${currentYear}`);
-                  }
-                }
-                
-                if (!isNaN(testDate.getTime())) {
-                  const dayOfWeek = testDate.getDay();
-                  if (dayOfWeek === 0 || dayOfWeek === 6) { // Weekend
-                    console.log('Hiding weekend column:', text, testDate);
-                    header.style.display = 'none';
-                    
-                    // Also hide corresponding body columns
-                    const columnIndex = index + 1;
-                    const bodyColumns = ganttContainer.querySelectorAll(`.gantt-grid-column:nth-child(${columnIndex})`);
-                    bodyColumns.forEach((col: any) => {
-                      col.style.display = 'none';
-                    });
-                  }
-                }
+          
+          // Method 2: Direct column manipulation
+          const allColumns = ganttContainer.querySelectorAll('.gantt-grid-column');
+          const headerCells = ganttContainer.querySelectorAll('.gantt-grid-header .gantt-grid-cell');
+          
+          console.log('Found columns:', allColumns.length, 'Header cells:', headerCells.length);
+          
+          headerCells.forEach((header: any, index: number) => {
+            const headerText = header.textContent?.trim() || '';
+            console.log('Processing header:', headerText, 'at index:', index);
+            
+            // Multiple date parsing attempts
+            let dateToCheck: Date | null = null;
+            const currentYear = new Date().getFullYear();
+            
+            // Try parsing as "Jan 15" format
+            if (headerText.match(/^\w{3}\s+\d{1,2}$/)) {
+              dateToCheck = new Date(`${headerText} ${currentYear}`);
+            }
+            
+            // Try parsing as number (day of month)
+            if (!dateToCheck || isNaN(dateToCheck.getTime())) {
+              const dayNum = parseInt(headerText);
+              if (!isNaN(dayNum) && dayNum >= 1 && dayNum <= 31) {
+                const currentDate = new Date();
+                dateToCheck = new Date(currentDate.getFullYear(), currentDate.getMonth(), dayNum);
               }
+            }
+            
+            if (dateToCheck && !isNaN(dateToCheck.getTime())) {
+              const dayOfWeek = dateToCheck.getDay();
+              if (dayOfWeek === 0 || dayOfWeek === 6) { // Sunday or Saturday
+                console.log('Hiding weekend:', headerText, dateToCheck, 'Day of week:', dayOfWeek);
+                
+                // Hide header
+                (header as HTMLElement).style.display = 'none';
+                (header as HTMLElement).style.visibility = 'hidden';
+                (header as HTMLElement).style.width = '0';
+                
+                // Hide corresponding column
+                const correspondingColumn = allColumns[index] as HTMLElement;
+                if (correspondingColumn) {
+                  correspondingColumn.style.display = 'none';
+                  correspondingColumn.style.visibility = 'hidden';
+                  correspondingColumn.style.width = '0';
+                }
+                
+                // Try alternative selectors
+                const altColumns = ganttContainer.querySelectorAll(`[data-column="${index}"], .gantt-column-${index}`);
+                altColumns.forEach((col) => {
+                  (col as HTMLElement).style.display = 'none';
+                  (col as HTMLElement).style.visibility = 'hidden';
+                  (col as HTMLElement).style.width = '0';
+                });
+              }
+            }
+          });
+          
+          // Method 3: CSS injection for weekend hiding
+          const weekendStyle = document.getElementById('weekend-hide-style');
+          if (weekendStyle) {
+            weekendStyle.remove();
+          }
+          
+          const style = document.createElement('style');
+          style.id = 'weekend-hide-style';
+          style.textContent = `
+            .gantt .gantt-grid-header .gantt-grid-cell:nth-child(7n+1),
+            .gantt .gantt-grid-header .gantt-grid-cell:nth-child(7n+7),
+            .gantt .gantt-grid-body .gantt-grid-column:nth-child(7n+1),
+            .gantt .gantt-grid-body .gantt-grid-column:nth-child(7n+7) {
+              display: none !important;
+              width: 0 !important;
+              visibility: hidden !important;
+            }
+          `;
+          document.head.appendChild(style);
+        } else {
+          // Remove weekend hiding styles when showing weekends
+          const weekendStyle = document.getElementById('weekend-hide-style');
+          if (weekendStyle) {
+            weekendStyle.remove();
+          }
+          
+          // Restore visibility
+          if (ganttRef.current) {
+            const allElements = ganttRef.current.querySelectorAll('.gantt-grid-header .gantt-grid-cell, .gantt-grid-body .gantt-grid-column');
+            allElements.forEach((el) => {
+              (el as HTMLElement).style.display = '';
+              (el as HTMLElement).style.visibility = '';
+              (el as HTMLElement).style.width = '';
             });
           }
-        }, 200);
-      }
+        }
+      }, 300);
       
       // Apply custom styling after initialization
       setTimeout(() => {

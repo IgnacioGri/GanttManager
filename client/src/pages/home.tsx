@@ -209,10 +209,38 @@ export default function Home() {
                     type="text"
                     value={projectNameInput}
                     onChange={(e) => setProjectNameInput(e.target.value)}
-                    onBlur={() => {
+                    onBlur={async () => {
                       if (projectNameInput.trim() && projectNameInput !== project.name) {
-                        // Update project name logic here
-                        console.log("Update project name to:", projectNameInput);
+                        try {
+                          const response = await fetch(`/api/projects/${project.id}`, {
+                            method: 'PATCH',
+                            headers: {
+                              'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                              name: projectNameInput.trim(),
+                              startDate: project.startDate,
+                              endDate: project.endDate,
+                            }),
+                          });
+                          
+                          if (!response.ok) throw new Error('Failed to update project name');
+                          
+                          await queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
+                          await queryClient.invalidateQueries({ queryKey: ["/api/projects", project.id] });
+                          
+                          toast({
+                            title: "Project Updated",
+                            description: "Project name has been updated successfully",
+                          });
+                        } catch (error) {
+                          toast({
+                            title: "Update Failed",
+                            description: "Failed to update project name",
+                            variant: "destructive"
+                          });
+                          setProjectNameInput(project.name); // Revert to original name
+                        }
                       }
                       setIsEditingProjectName(false);
                     }}
