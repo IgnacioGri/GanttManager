@@ -293,8 +293,9 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
     let adjustedStartDate = startDate;
     let adjustedEndDate = endDate;
     
-    // If sync mode is selected, calculate dates based on synced task
+    // Apply different logic based on dependency type
     if (dependencyType === "sync" && syncedTaskId && syncType && project) {
+      // Sync mode: calculate dates based on synced task
       const syncedTask = project.tasks.find(t => t.id === syncedTaskId);
       if (syncedTask) {
         switch (syncType) {
@@ -316,14 +317,38 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
             break;
         }
       }
-    } else if (autoAdjustWeekends && dependencyType === "manual") {
-      adjustedStartDate = adjustDateForWeekends(startDate);
+    } else if (dependencyType === "dependent") {
+      // Dependent mode: dates are already calculated by useEffect, keep them as is
+      // adjustedStartDate and adjustedEndDate already contain the calculated values
+    } else if (dependencyType === "manual") {
+      // Manual mode: use exactly what the user selected, with optional weekend adjustment
+      if (autoAdjustWeekends) {
+        adjustedStartDate = adjustDateForWeekends(startDate);
+        // If start date was adjusted, recalculate end date to maintain duration
+        if (adjustedStartDate.getTime() !== startDate.getTime()) {
+          adjustedEndDate = calculateEndDateFromDuration(adjustedStartDate, duration);
+        }
+      } else {
+        // Use exactly the dates the user selected without any adjustments
+        adjustedStartDate = startDate;
+        adjustedEndDate = endDate;
+      }
     }
 
     // Set dependencies and sync based on type
     let finalDependencies = dependencyType === "dependent" ? dependencies : [];
     let finalSyncedTaskId = dependencyType === "sync" ? syncedTaskId : null;
     let finalSyncType = dependencyType === "sync" && syncedTaskId ? syncType : null;
+
+    // Debug logging
+    console.log("=== TASK SAVE DEBUG ===");
+    console.log("Dependency type:", dependencyType);
+    console.log("Original startDate:", startDate);
+    console.log("Original endDate:", endDate);
+    console.log("Adjusted startDate:", adjustedStartDate);
+    console.log("Adjusted endDate:", adjustedEndDate);
+    console.log("Start date input:", startDateInput);
+    console.log("End date input:", endDateInput);
 
     const taskData = {
       projectId,
@@ -340,6 +365,8 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
       syncedTaskId: finalSyncedTaskId,
       syncType: finalSyncType,
     };
+    
+    console.log("Final task data:", taskData);
 
     if (task) {
       updateTaskMutation.mutate({ ...taskData, id: task.id });
