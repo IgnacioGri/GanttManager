@@ -114,6 +114,7 @@ export function GanttChart({ project, timelineScale, showWeekends, onEditTask, o
         show_weekends: showWeekends,
         readonly: false,
         show_today_line: true,
+        hide_weekends: !showWeekends,
         on_click: (task: any) => {
           const originalTask = project.tasks.find(t => t.id.toString() === task.id);
           if (originalTask) {

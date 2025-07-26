@@ -200,19 +200,16 @@ export default function Home() {
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold text-slate-900">Gantt Manager</h1>
           {project && (
-            <div className="flex items-center gap-4">
-              <div className="text-right">
-                <h2 className="text-2xl font-bold text-slate-900">{project.name}</h2>
-                <p className="text-sm text-slate-500 uppercase tracking-wide">PROJECT</p>
-              </div>
+            <div className="text-right">
               <button 
                 onClick={() => setIsProjectListOpen(true)}
-                className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+                className="group text-right hover:bg-slate-50 p-2 rounded-lg transition-colors"
                 title="Change Project"
               >
-                <svg className="w-6 h-6 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0l-4-4m4 4l-4 4" />
-                </svg>
+                <h2 className="text-2xl font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
+                  {project.name}
+                </h2>
+                <p className="text-sm text-slate-500 uppercase tracking-wide">PROJECT</p>
               </button>
             </div>
           )}
