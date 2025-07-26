@@ -159,22 +159,6 @@ export function Sidebar({
             </DropdownMenu>
           </div>
 
-          <div className="mb-6 bg-white p-4 rounded-lg shadow-sm border border-slate-200">
-            <h3 className="text-sm uppercase tracking-wide text-slate-500 mb-3">TASK ACTIONS</h3>
-            <div className="space-y-2">
-              <Button 
-                variant="outline" 
-                className="w-full justify-start"
-                onClick={onNewTask}
-                disabled={!project}
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Add Task
-              </Button>
-            </div>
-          </div>
-
-
         </div>
       )}
     </aside>
