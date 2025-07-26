@@ -102,32 +102,19 @@ export function Sidebar({
             </div>
           )}
 
+
+
           <div className="mb-6 bg-white p-4 rounded-lg shadow-sm border border-slate-200">
-            <h3 className="text-sm uppercase tracking-wide text-slate-500 mb-4">TIMELINE OPTIONS</h3>
-            <div className="space-y-4">
-              <div>
-                <label className="text-xs uppercase tracking-wide text-slate-600 mb-2 block">SCALE</label>
-                <div className="flex bg-slate-100 rounded-lg p-1">
-                  {(['Day', 'Week', 'Month'] as const).map((scale) => (
-                    <button
-                      key={scale}
-                      onClick={() => onTimelineScaleChange(scale)}
-                      className={`flex-1 px-3 py-2 text-xs font-medium rounded-md transition-all ${
-                        timelineScale === scale
-                          ? 'bg-white text-slate-900 shadow-sm'
-                          : 'text-slate-600 hover:text-slate-900'
-                      }`}
-                    >
-                      {scale === 'Day' ? 'Days' : scale === 'Week' ? 'Weeks' : 'Months'}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div className="flex items-center justify-between">
-                <label className="text-xs uppercase tracking-wide text-slate-600">SHOW WEEKENDS</label>
-                <Switch checked={showWeekends} onCheckedChange={onShowWeekendsChange} />
-              </div>
-              <p className="text-xs text-slate-500 mt-1">Toggle weekend visibility in timeline</p>
+            <h3 className="text-sm uppercase tracking-wide text-slate-500 mb-3">TASK ACTIONS</h3>
+            <div className="space-y-2">
+              <Button 
+                variant="outline" 
+                className="w-full justify-start"
+                onClick={onNewTask}
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add New Task
+              </Button>
             </div>
           </div>
 

@@ -19,6 +19,8 @@ interface GanttChartProps {
   isCollapsed: boolean;
   isFullScreen?: boolean;
   onToggleFullScreen?: () => void;
+  onTimelineScaleChange: (scale: "Day" | "Week" | "Month") => void;
+  onWeekendToggle: (show: boolean) => void;
 }
 
 declare global {
@@ -27,10 +29,31 @@ declare global {
   }
 }
 
-export function GanttChart({ project, timelineScale, showWeekends, onEditTask, onAddComment, onTaskUpdate, onDeleteTask, isCollapsed, isFullScreen = false, onToggleFullScreen }: GanttChartProps) {
+export function GanttChart({ project, timelineScale, showWeekends, onEditTask, onAddComment, onTaskUpdate, onDeleteTask, isCollapsed, isFullScreen = false, onToggleFullScreen, onTimelineScaleChange, onWeekendToggle }: GanttChartProps) {
   const ganttRef = useRef<HTMLDivElement>(null);
   const ganttInstance = useRef<any>(null);
   const [taskFilter, setTaskFilter] = useState<TaskFilter>("all");
+
+  // Argentine holidays for 2025
+  const getArgentineHolidays = () => {
+    return [
+      '2025-01-01', // New Year's Day
+      '2025-02-24', // Carnival Monday
+      '2025-02-25', // Carnival Tuesday
+      '2025-03-24', // Day of Remembrance for Truth and Justice
+      '2025-04-02', // Falklands War Veterans Day
+      '2025-04-18', // Good Friday
+      '2025-05-01', // Labour Day
+      '2025-05-25', // May Revolution
+      '2025-06-20', // Flag Day
+      '2025-07-09', // Independence Day
+      '2025-08-17', // Death of San Martín
+      '2025-10-12', // Columbus Day
+      '2025-11-20', // National Sovereignty Day
+      '2025-12-08', // Immaculate Conception
+      '2025-12-25', // Christmas Day
+    ];
+  };
 
   const handleDateChange = (taskId: string, start: Date, end: Date) => {
     const id = parseInt(taskId);
@@ -107,13 +130,15 @@ export function GanttChart({ project, timelineScale, showWeekends, onEditTask, o
     const tasks = createGanttTasks(project.tasks);
 
     try {
-      // Custom options for Gantt library
+      // Custom options for Gantt library with holidays support
       const ganttOptions: any = {
         view_mode: timelineScale,
         date_format: 'YYYY-MM-DD',
         language: 'en',
         readonly: false,
         show_today_line: true,
+        holidays: getArgentineHolidays(),
+        hide_weekends: !showWeekends,
         on_click: (task: any) => {
           const originalTask = project.tasks.find(t => t.id.toString() === task.id);
           if (originalTask) {
@@ -130,30 +155,10 @@ export function GanttChart({ project, timelineScale, showWeekends, onEditTask, o
         }
       };
 
-      // Add weekend control based on showWeekends flag
-      if (!showWeekends) {
-        ganttOptions.custom_popup_html = null;
-        // We'll manually filter weekend columns after rendering
-      }
-
       ganttInstance.current = new window.Gantt(ganttRef.current, tasks, ganttOptions);
       
-      // Apply custom styling and weekend hiding after initialization
+      // Apply custom styling after initialization
       setTimeout(() => {
-        // Hide weekend columns if showWeekends is false
-        if (!showWeekends && ganttRef.current) {
-          const weekendColumns = ganttRef.current.querySelectorAll('.gantt-date-column');
-          weekendColumns.forEach((column: any) => {
-            const dateText = column.textContent;
-            if (dateText) {
-              const date = new Date(dateText);
-              const dayOfWeek = date.getDay();
-              if (dayOfWeek === 0 || dayOfWeek === 6) { // Sunday or Saturday
-                column.style.display = 'none';
-              }
-            }
-          });
-        }
         
         project.tasks.forEach((task, index) => {
           // Phase-based colors
@@ -239,48 +244,84 @@ export function GanttChart({ project, timelineScale, showWeekends, onEditTask, o
             <h2 className="text-2xl font-bold text-slate-900">Gantt Chart</h2>
             <p className="text-sm text-slate-500 uppercase tracking-wide">PROJECT TIMELINE</p>
           </div>
-          {/* Filter buttons */}
-          <div className="flex bg-slate-100 rounded-lg p-1 ml-6">
-            <button 
-              onClick={() => setTaskFilter("all")}
-              className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${
-                taskFilter === "all" 
-                  ? 'bg-white text-slate-900 shadow-sm' 
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              All Tasks
-            </button>
-            <button 
-              onClick={() => setTaskFilter("pending")}
-              className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${
-                taskFilter === "pending" 
-                  ? 'bg-white text-slate-900 shadow-sm' 
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              Pending
-            </button>
-            <button 
-              onClick={() => setTaskFilter("in-progress")}
-              className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${
-                taskFilter === "in-progress" 
-                  ? 'bg-white text-slate-900 shadow-sm' 
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              In Progress
-            </button>
-            <button 
-              onClick={() => setTaskFilter("completed")}
-              className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${
-                taskFilter === "completed" 
-                  ? 'bg-white text-slate-900 shadow-sm' 
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              Completed
-            </button>
+          {/* Filter buttons and timeline controls */}
+          <div className="flex items-center gap-6 ml-6">
+            <div className="flex bg-slate-100 rounded-lg p-1">
+              <button 
+                onClick={() => setTaskFilter("all")}
+                className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${
+                  taskFilter === "all" 
+                    ? 'bg-white text-slate-900 shadow-sm' 
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                All Tasks
+              </button>
+              <button 
+                onClick={() => setTaskFilter("pending")}
+                className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${
+                  taskFilter === "pending" 
+                    ? 'bg-white text-slate-900 shadow-sm' 
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                Pending
+              </button>
+              <button 
+                onClick={() => setTaskFilter("in-progress")}
+                className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${
+                  taskFilter === "in-progress" 
+                    ? 'bg-white text-slate-900 shadow-sm' 
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                In Progress
+              </button>
+              <button 
+                onClick={() => setTaskFilter("completed")}
+                className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${
+                  taskFilter === "completed" 
+                    ? 'bg-white text-slate-900 shadow-sm' 
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                Completed
+              </button>
+            </div>
+
+            {/* Timeline Scale Controls */}
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-slate-500 uppercase tracking-wide">Scale:</span>
+              <div className="flex bg-slate-100 rounded-lg p-1">
+                {(['Day', 'Week', 'Month'] as const).map((scale) => (
+                  <button
+                    key={scale}
+                    onClick={() => onTimelineScaleChange(scale)}
+                    className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${
+                      timelineScale === scale
+                        ? 'bg-white text-slate-900 shadow-sm'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    {scale}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Weekend Control */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => onWeekendToggle(!showWeekends)}
+                className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${
+                  showWeekends
+                    ? 'bg-blue-100 text-blue-900'
+                    : 'bg-slate-100 text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                {showWeekends ? 'Hide Weekends' : 'Show Weekends'}
+              </button>
+            </div>
           </div>
         </div>
         {onToggleFullScreen && (

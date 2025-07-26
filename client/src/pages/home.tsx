@@ -278,6 +278,8 @@ export default function Home() {
             isCollapsed={isSidebarCollapsed}
             isFullScreen={isGanttFullScreen}
             onToggleFullScreen={() => setIsGanttFullScreen(!isGanttFullScreen)}
+            onTimelineScaleChange={setTimelineScale}
+            onWeekendToggle={setShowWeekends}
           />
         </main>
       </div>
