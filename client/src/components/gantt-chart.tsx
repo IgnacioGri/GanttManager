@@ -159,16 +159,18 @@ export function GanttChart({ project, timelineScale, showWeekends, onEditTask, o
         }
       };
 
-      // Add weekend/holiday configuration if supported
-      if (!showWeekends) {
-        ganttOptions.ignore = ['weekend', ...getArgentineHolidays()];
-        console.log('Ignoring weekends and holidays:', ganttOptions.ignore);
-      } else {
+      // Add weekend/holiday configuration - FIXED LOGIC
+      if (showWeekends) {
+        // Show weekends but mark holidays
         ganttOptions.ignore = getArgentineHolidays();
         ganttOptions.holidays = {
           'rgba(255, 0, 0, 0.3)': getArgentineHolidays()
         };
-        console.log('Showing weekends, ignoring only holidays:', ganttOptions.ignore);
+        console.log('SHOWING weekends, ignoring only holidays:', ganttOptions.ignore);
+      } else {
+        // Hide weekends AND holidays
+        ganttOptions.ignore = ['weekend', ...getArgentineHolidays()];
+        console.log('HIDING weekends and holidays:', ganttOptions.ignore);
       }
 
       console.log('Creating Gantt with options:', ganttOptions);
@@ -181,7 +183,7 @@ export function GanttChart({ project, timelineScale, showWeekends, onEditTask, o
         console.log('Should hide weekends:', !showWeekends);
         
         if (!showWeekends && ganttRef.current) {
-          console.log('=== EXECUTING WEEKEND HIDING ===');
+          console.log('=== EXECUTING WEEKEND HIDING (manual backup) ===');
           
           // Method 1: Hide via CSS class manipulation
           const ganttContainer = ganttRef.current;
@@ -263,6 +265,7 @@ export function GanttChart({ project, timelineScale, showWeekends, onEditTask, o
           `;
           document.head.appendChild(style);
         } else {
+          console.log('=== SHOWING WEEKENDS - cleaning up manual overrides ===');
           // Remove weekend hiding styles when showing weekends
           const weekendStyle = document.getElementById('weekend-hide-style');
           if (weekendStyle) {
