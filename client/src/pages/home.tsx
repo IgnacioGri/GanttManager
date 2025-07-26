@@ -29,6 +29,8 @@ export default function Home() {
   const [showWeekends, setShowWeekends] = useState(true);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isGanttFullScreen, setIsGanttFullScreen] = useState(false);
+  const [isEditingProjectName, setIsEditingProjectName] = useState(false);
+  const [projectNameInput, setProjectNameInput] = useState("");
 
   const { data: project, isLoading } = useQuery<ProjectWithTasks>({
     queryKey: ["/api/projects", projectId],
@@ -201,16 +203,47 @@ export default function Home() {
           <h1 className="text-3xl font-bold text-slate-900">Gantt Manager</h1>
           {project && (
             <div className="text-right">
-              <button 
-                onClick={() => setIsProjectListOpen(true)}
-                className="group text-right hover:bg-slate-50 p-2 rounded-lg transition-colors"
-                title="Change Project"
-              >
-                <h2 className="text-2xl font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
-                  {project.name}
-                </h2>
-                <p className="text-sm text-slate-500 uppercase tracking-wide">PROJECT</p>
-              </button>
+              {isEditingProjectName ? (
+                <div className="p-2">
+                  <input
+                    type="text"
+                    value={projectNameInput}
+                    onChange={(e) => setProjectNameInput(e.target.value)}
+                    onBlur={() => {
+                      if (projectNameInput.trim() && projectNameInput !== project.name) {
+                        // Update project name logic here
+                        console.log("Update project name to:", projectNameInput);
+                      }
+                      setIsEditingProjectName(false);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.currentTarget.blur();
+                      } else if (e.key === 'Escape') {
+                        setProjectNameInput(project.name);
+                        setIsEditingProjectName(false);
+                      }
+                    }}
+                    className="text-2xl font-bold text-slate-900 bg-white border border-blue-500 rounded px-2 py-1 text-right"
+                    autoFocus
+                  />
+                  <p className="text-sm text-slate-500 uppercase tracking-wide">PROJECT</p>
+                </div>
+              ) : (
+                <button 
+                  onClick={() => {
+                    setProjectNameInput(project.name);
+                    setIsEditingProjectName(true);
+                  }}
+                  className="group text-right hover:bg-slate-50 p-2 rounded-lg transition-colors"
+                  title="Click to edit project name"
+                >
+                  <h2 className="text-2xl font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
+                    {project.name}
+                  </h2>
+                  <p className="text-sm text-slate-500 uppercase tracking-wide">PROJECT</p>
+                </button>
+              )}
             </div>
           )}
         </div>

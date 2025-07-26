@@ -107,14 +107,13 @@ export function GanttChart({ project, timelineScale, showWeekends, onEditTask, o
     const tasks = createGanttTasks(project.tasks);
 
     try {
-      ganttInstance.current = new window.Gantt(ganttRef.current, tasks, {
+      // Custom options for Gantt library
+      const ganttOptions: any = {
         view_mode: timelineScale,
         date_format: 'YYYY-MM-DD',
         language: 'en',
-        show_weekends: showWeekends,
         readonly: false,
         show_today_line: true,
-        hide_weekends: !showWeekends,
         on_click: (task: any) => {
           const originalTask = project.tasks.find(t => t.id.toString() === task.id);
           if (originalTask) {
@@ -129,10 +128,33 @@ export function GanttChart({ project, timelineScale, showWeekends, onEditTask, o
           // Update task progress when changed in Gantt
           handleProgressChange(task.id, progress);
         }
-      });
+      };
+
+      // Add weekend control based on showWeekends flag
+      if (!showWeekends) {
+        ganttOptions.custom_popup_html = null;
+        // We'll manually filter weekend columns after rendering
+      }
+
+      ganttInstance.current = new window.Gantt(ganttRef.current, tasks, ganttOptions);
       
-      // Apply custom colors and hover effects after initialization
+      // Apply custom styling and weekend hiding after initialization
       setTimeout(() => {
+        // Hide weekend columns if showWeekends is false
+        if (!showWeekends && ganttRef.current) {
+          const weekendColumns = ganttRef.current.querySelectorAll('.gantt-date-column');
+          weekendColumns.forEach((column: any) => {
+            const dateText = column.textContent;
+            if (dateText) {
+              const date = new Date(dateText);
+              const dayOfWeek = date.getDay();
+              if (dayOfWeek === 0 || dayOfWeek === 6) { // Sunday or Saturday
+                column.style.display = 'none';
+              }
+            }
+          });
+        }
+        
         project.tasks.forEach((task, index) => {
           // Phase-based colors
           const getTaskColor = (taskName: string) => {
