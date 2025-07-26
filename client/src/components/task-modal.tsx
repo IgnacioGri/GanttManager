@@ -314,6 +314,8 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
           case "start-end-together":
             adjustedStartDate = parseInputDate(syncedTask.startDate);
             adjustedEndDate = parseInputDate(syncedTask.endDate);
+            // Update duration to match the synced task
+            setDuration(calculateDurationFromDates(adjustedStartDate, adjustedEndDate));
             break;
         }
       }
@@ -575,7 +577,10 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
               )}
               
               <p className="text-xs text-slate-600">
-                Dates will be automatically calculated based on the reference task. Manual date selection will be disabled.
+                {syncType === "start-end-together" 
+                  ? "Dates and duration will be automatically calculated based on the reference task. Manual date and duration selection will be disabled."
+                  : "Dates will be automatically calculated based on the reference task. Manual date selection will be disabled."
+                }
               </p>
             </div>
           )}
@@ -756,6 +761,7 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
                 id="duration"
                 type="number"
                 value={duration}
+                disabled={dependencyType === "sync" && syncType === "start-end-together"}
                 onChange={(e) => {
                   const newDuration = parseInt(e.target.value) || 1;
                   setDuration(newDuration);
