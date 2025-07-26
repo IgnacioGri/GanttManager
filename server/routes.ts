@@ -9,6 +9,33 @@ const upload = multer({
   limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
 });
 
+// Date calculation utilities for server-side sync updates
+function parseInputDate(dateStr: string): Date {
+  return new Date(dateStr + 'T03:00:00.000Z');
+}
+
+function calculateEndDateFromDuration(startDate: string, duration: number): string {
+  const start = parseInputDate(startDate);
+  const end = new Date(start);
+  end.setDate(start.getDate() + duration - 1);
+  return end.toISOString().split('T')[0];
+}
+
+function calculateStartDateFromEndAndDuration(endDate: string, duration: number): string {
+  const end = parseInputDate(endDate);
+  const start = new Date(end);
+  start.setDate(end.getDate() - duration + 1);
+  return start.toISOString().split('T')[0];
+}
+
+function calculateDurationFromDates(startDate: string, endDate: string): number {
+  const start = parseInputDate(startDate);
+  const end = parseInputDate(endDate);
+  const diffTime = end.getTime() - start.getTime();
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  return Math.max(1, diffDays + 1);
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Projects
   app.get("/api/projects", async (req, res) => {
@@ -122,8 +149,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!task) {
         return res.status(404).json({ message: "Task not found" });
       }
+
+      // Update synced tasks when a reference task is modified
+      const allTasks = await storage.getTasksByProject(task.projectId);
+      const syncedTasks = allTasks.filter(t => 
+        t.syncedTaskId && t.syncedTaskId === id.toString() && t.id !== id
+      );
+
+      for (const syncedTask of syncedTasks) {
+        let updatedData: any = {};
+        
+        switch (syncedTask.syncType) {
+          case "start-start":
+            updatedData = {
+              id: syncedTask.id,
+              startDate: task.startDate,
+              endDate: calculateEndDateFromDuration(task.startDate, syncedTask.duration),
+              skipWeekends: task.skipWeekends,
+              autoAdjustWeekends: task.autoAdjustWeekends
+            };
+            break;
+          case "end-end":
+            updatedData = {
+              id: syncedTask.id,
+              endDate: task.endDate,
+              startDate: calculateStartDateFromEndAndDuration(task.endDate, syncedTask.duration),
+              skipWeekends: task.skipWeekends,
+              autoAdjustWeekends: task.autoAdjustWeekends
+            };
+            break;
+          case "start-end-together":
+            const newDuration = calculateDurationFromDates(task.startDate, task.endDate);
+            updatedData = {
+              id: syncedTask.id,
+              startDate: task.startDate,
+              endDate: task.endDate,
+              duration: newDuration,
+              skipWeekends: task.skipWeekends,
+              autoAdjustWeekends: task.autoAdjustWeekends
+            };
+            break;
+        }
+        
+        if (Object.keys(updatedData).length > 1) { // More than just id
+          await storage.updateTask(updatedData);
+        }
+      }
+
       res.json(task);
     } catch (error) {
+      console.error('Task update error:', error);
       res.status(400).json({ message: "Invalid task data" });
     }
   });
