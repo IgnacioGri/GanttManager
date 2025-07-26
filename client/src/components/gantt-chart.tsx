@@ -130,19 +130,17 @@ export function GanttChart({ project, timelineScale, showWeekends, onEditTask, o
     const tasks = createGanttTasks(project.tasks);
 
     try {
-      // Custom options for Gantt library with holidays support
-      const ignoreList = showWeekends ? getArgentineHolidays() : ['weekend', ...getArgentineHolidays()];
+      // Debug logging
+      console.log('Show weekends:', showWeekends);
+      console.log('Timeline scale:', timelineScale);
       
+      // Custom options for Gantt library
       const ganttOptions: any = {
         view_mode: timelineScale,
         date_format: 'YYYY-MM-DD',
         language: 'en',
         readonly: false,
         show_today_line: true,
-        ignore: ignoreList,
-        holidays: {
-          'rgba(255, 0, 0, 0.2)': getArgentineHolidays()
-        },
         on_click: (task: any) => {
           const originalTask = project.tasks.find(t => t.id.toString() === task.id);
           if (originalTask) {
@@ -159,7 +157,62 @@ export function GanttChart({ project, timelineScale, showWeekends, onEditTask, o
         }
       };
 
+      // Add weekend/holiday configuration if supported
+      if (!showWeekends) {
+        ganttOptions.ignore = ['weekend', ...getArgentineHolidays()];
+        console.log('Ignoring weekends and holidays:', ganttOptions.ignore);
+      } else {
+        ganttOptions.ignore = getArgentineHolidays();
+        ganttOptions.holidays = {
+          'rgba(255, 0, 0, 0.3)': getArgentineHolidays()
+        };
+        console.log('Showing weekends, ignoring only holidays:', ganttOptions.ignore);
+      }
+
+      console.log('Creating Gantt with options:', ganttOptions);
       ganttInstance.current = new window.Gantt(ganttRef.current, tasks, ganttOptions);
+      
+      // Manual weekend hiding if ignore option doesn't work
+      if (!showWeekends) {
+        setTimeout(() => {
+          const ganttContainer = ganttRef.current;
+          if (ganttContainer) {
+            // Try to find and hide weekend columns manually
+            const headers = ganttContainer.querySelectorAll('.gantt-grid-header .gantt-grid-cell');
+            headers.forEach((header: any, index: number) => {
+              const text = header.textContent;
+              if (text) {
+                // Try to parse date and check if it's weekend
+                const currentYear = new Date().getFullYear();
+                let testDate = new Date(`${text} ${currentYear}`);
+                
+                if (isNaN(testDate.getTime())) {
+                  // Try different date parsing
+                  const parts = text.split(' ');
+                  if (parts.length >= 2) {
+                    testDate = new Date(`${parts[0]} ${parts[1]} ${currentYear}`);
+                  }
+                }
+                
+                if (!isNaN(testDate.getTime())) {
+                  const dayOfWeek = testDate.getDay();
+                  if (dayOfWeek === 0 || dayOfWeek === 6) { // Weekend
+                    console.log('Hiding weekend column:', text, testDate);
+                    header.style.display = 'none';
+                    
+                    // Also hide corresponding body columns
+                    const columnIndex = index + 1;
+                    const bodyColumns = ganttContainer.querySelectorAll(`.gantt-grid-column:nth-child(${columnIndex})`);
+                    bodyColumns.forEach((col: any) => {
+                      col.style.display = 'none';
+                    });
+                  }
+                }
+              }
+            });
+          }
+        }, 200);
+      }
       
       // Apply custom styling after initialization
       setTimeout(() => {
