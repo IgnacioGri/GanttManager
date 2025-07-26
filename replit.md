@@ -11,12 +11,12 @@ Default timeline scale: Days (changed from Week to provide more detailed daily v
 
 ## Recent Changes
 
-### Weekend Control Feature - COMPLETED (January 26, 2025)
-- Successfully implemented functional weekend hide/show toggle after multiple iterations
-- Issue resolved: Frappe Gantt library ignores native `ignore: ['weekend']` option
-- Solution: Hybrid approach using native API + manual DOM manipulation as fallback
-- Feature now working: User can toggle weekend visibility in Gantt chart timeline
-- Implementation includes intelligent date parsing and column detection for reliable operation
+### Weekend Control Feature - REMOVED (January 26, 2025)
+- Feature completely removed after multiple failed implementation attempts
+- Issue: Frappe Gantt library does not support weekend hiding functionality
+- Attempted solutions: Native API, DOM manipulation, CSS injection - all unsuccessful
+- User decision: Remove feature entirely to focus on core Gantt functionality
+- All related code, props, state management, and UI elements removed
 
 ## System Architecture
 

@@ -26,7 +26,7 @@ export default function Home() {
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [timelineScale, setTimelineScale] = useState<"Day" | "Week" | "Month">("Day");
-  const [showWeekends, setShowWeekends] = useState(true);
+
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isGanttFullScreen, setIsGanttFullScreen] = useState(false);
   const [isEditingProjectName, setIsEditingProjectName] = useState(false);
@@ -282,8 +282,6 @@ export default function Home() {
           project={project}
           timelineScale={timelineScale}
           onTimelineScaleChange={setTimelineScale}
-          showWeekends={showWeekends}
-          onShowWeekendsChange={setShowWeekends}
           onNewTask={handleNewTask}
           onNewProject={handleNewProject}
           onShowProjects={() => setIsProjectListOpen(true)}
@@ -298,7 +296,6 @@ export default function Home() {
           <GanttChart 
             project={project}
             timelineScale={timelineScale}
-            showWeekends={showWeekends}
             onEditTask={handleEditTask}
             onAddComment={handleAddComment}
             onTaskUpdate={handleTaskUpdate}
@@ -307,7 +304,6 @@ export default function Home() {
             isFullScreen={isGanttFullScreen}
             onToggleFullScreen={() => setIsGanttFullScreen(!isGanttFullScreen)}
             onTimelineScaleChange={setTimelineScale}
-            onWeekendToggle={setShowWeekends}
           />
         </main>
       </div>

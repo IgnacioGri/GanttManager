@@ -11,8 +11,6 @@ interface SidebarProps {
   project?: ProjectWithTasks;
   timelineScale: "Day" | "Week" | "Month";
   onTimelineScaleChange: (scale: "Day" | "Week" | "Month") => void;
-  showWeekends: boolean;
-  onShowWeekendsChange: (show: boolean) => void;
   onNewTask: () => void;
   onNewProject: () => void;
   onShowProjects: () => void;
@@ -27,8 +25,6 @@ export function Sidebar({
   project, 
   timelineScale, 
   onTimelineScaleChange, 
-  showWeekends, 
-  onShowWeekendsChange, 
   onNewTask,
   onNewProject,
   onShowProjects,

@@ -11,7 +11,6 @@ type TaskFilter = "all" | "pending" | "in-progress" | "completed";
 interface GanttChartProps {
   project?: ProjectWithTasks;
   timelineScale: "Day" | "Week" | "Month";
-  showWeekends: boolean;
   onEditTask: (task: Task) => void;
   onAddComment: (task: Task) => void;
   onTaskUpdate: (taskId: number, updates: Partial<Task>) => void;
@@ -20,7 +19,6 @@ interface GanttChartProps {
   isFullScreen?: boolean;
   onToggleFullScreen?: () => void;
   onTimelineScaleChange: (scale: "Day" | "Week" | "Month") => void;
-  onWeekendToggle: (show: boolean) => void;
 }
 
 declare global {
@@ -29,7 +27,7 @@ declare global {
   }
 }
 
-export function GanttChart({ project, timelineScale, showWeekends, onEditTask, onAddComment, onTaskUpdate, onDeleteTask, isCollapsed, isFullScreen = false, onToggleFullScreen, onTimelineScaleChange, onWeekendToggle }: GanttChartProps) {
+export function GanttChart({ project, timelineScale, onEditTask, onAddComment, onTaskUpdate, onDeleteTask, isCollapsed, isFullScreen = false, onToggleFullScreen, onTimelineScaleChange }: GanttChartProps) {
   const ganttRef = useRef<HTMLDivElement>(null);
   const ganttInstance = useRef<any>(null);
   const [taskFilter, setTaskFilter] = useState<TaskFilter>("all");
@@ -123,8 +121,7 @@ export function GanttChart({ project, timelineScale, showWeekends, onEditTask, o
   const createGanttChart = useCallback(() => {
     if (!ganttRef.current || !project?.tasks.length) return;
 
-    console.log('=== GANTT CHART CREATION/RECREATION ===');
-    console.log('Show weekends:', showWeekends);
+    console.log('=== GANTT CHART CREATION ===');
     console.log('Timeline scale:', timelineScale);
     
     // COMPLETELY DESTROY the previous instance and clear the container
@@ -148,6 +145,10 @@ export function GanttChart({ project, timelineScale, showWeekends, onEditTask, o
         language: 'en',
         readonly: false,
         show_today_line: true,
+        ignore: getArgentineHolidays(),
+        holidays: {
+          'rgba(255, 0, 0, 0.3)': getArgentineHolidays()
+        },
         on_click: (task: any) => {
           const originalTask = project.tasks.find(t => t.id.toString() === task.id);
           if (originalTask) {
@@ -162,40 +163,13 @@ export function GanttChart({ project, timelineScale, showWeekends, onEditTask, o
         }
       };
 
-      // Add weekend/holiday configuration - CORRECTED LOGIC
-      if (showWeekends) {
-        // Show weekends but mark holidays
-        ganttOptions.ignore = getArgentineHolidays();
-        ganttOptions.holidays = {
-          'rgba(255, 0, 0, 0.3)': getArgentineHolidays()
-        };
-        console.log('✅ SHOWING weekends, ignoring only holidays:', ganttOptions.ignore);
-      } else {
-        // Hide weekends AND holidays
-        ganttOptions.ignore = ['weekend', ...getArgentineHolidays()];
-        console.log('🚫 HIDING weekends and holidays:', ganttOptions.ignore);
-      }
-
-      console.log('Creating FRESH Gantt instance with options:', ganttOptions);
+      console.log('Creating Gantt instance with options:', ganttOptions);
       ganttInstance.current = new window.Gantt(ganttRef.current, tasks, ganttOptions);
       console.log('✅ Gantt instance created successfully');
-      
-      // CRITICAL: Frappe Gantt ignores the 'weekend' option, so we need manual DOM manipulation
-      if (!showWeekends) {
-        setTimeout(() => {
-          console.log('🔧 Applying manual weekend hiding as Frappe Gantt API failed');
-          hideWeekendsManually();
-        }, 200);
-      } else {
-        // Clean up any previous manual weekend hiding
-        setTimeout(() => {
-          showWeekendsManually();
-        }, 200);
-      }
     } catch (error) {
       console.error('❌ Error creating Gantt chart:', error);
     }
-  }, [project?.tasks, showWeekends, timelineScale, onEditTask, handleDateChange, handleProgressChange]);
+  }, [project?.tasks, timelineScale, onEditTask, handleDateChange, handleProgressChange]);
 
   // Effect that ALWAYS recreates the chart when dependencies change
   useEffect(() => {
@@ -218,142 +192,10 @@ export function GanttChart({ project, timelineScale, showWeekends, onEditTask, o
       if (ganttInstance.current) {
         ganttInstance.current = null;
       }
-      
-      // Remove any injected styles
-      const weekendStyle = document.getElementById('weekend-hide-style');
-      if (weekendStyle) {
-        weekendStyle.remove();
-      }
     };
   }, []);
 
-  // Manual weekend hiding function - because Frappe Gantt ignores 'weekend' option
-  const hideWeekendsManually = () => {
-    if (!ganttRef.current) return;
-    
-    console.log('🔧 Manually hiding weekend columns - inspecting DOM structure');
-    
-    // Let's find the actual DOM structure used by Frappe Gantt
-    const allElements = ganttRef.current.querySelectorAll('*');
-    console.log('Total elements in Gantt:', allElements.length);
-    
-    // Try different possible selectors for Frappe Gantt
-    const possibleHeaderSelectors = [
-      '.gantt-header .grid-row .grid-col',
-      '.gantt-grid-header .gantt-grid-cell',
-      '.gantt-timeline .gantt-header-row .gantt-header-cell',
-      '.gantt .gantt-header .gantt-dates',
-      'svg .tick',
-      '.gantt-dates-header .gantt-date',
-      '.gantt-container .gantt-header .gantt-upper-header .gantt-upper-header-cell'
-    ];
-    
-    let headerCells: NodeListOf<Element> | null = null;
-    let workingSelector = '';
-    
-    for (const selector of possibleHeaderSelectors) {
-      const elements = ganttRef.current.querySelectorAll(selector);
-      if (elements.length > 0) {
-        console.log(`Found ${elements.length} elements with selector: ${selector}`);
-        if (elements.length > 5) { // Likely the daily headers
-          headerCells = elements;
-          workingSelector = selector;
-          break;
-        }
-      }
-    }
-    
-    if (!headerCells || headerCells.length === 0) {
-      console.log('❌ Could not find header cells with any selector. Available classes:');
-      const uniqueClasses = new Set<string>();
-      ganttRef.current.querySelectorAll('*').forEach(el => {
-        if (el.className) {
-          el.className.split(' ').forEach(cls => {
-            if (cls.trim()) uniqueClasses.add(cls.trim());
-          });
-        }
-      });
-      console.log('Available CSS classes:', Array.from(uniqueClasses).sort());
-      
-      // Fallback: Use brute force CSS injection
-      const style = document.createElement('style');
-      style.id = 'weekend-hide-style-fallback';
-      style.textContent = `
-        .gantt .gantt-timeline .gantt-header .gantt-upper-header .gantt-upper-header-cell:nth-child(7n),
-        .gantt .gantt-timeline .gantt-header .gantt-upper-header .gantt-upper-header-cell:nth-child(7n+1),
-        .gantt .gantt-timeline .gantt-body .gantt-body-rows .gantt-body-row .gantt-body-cell:nth-child(7n),
-        .gantt .gantt-timeline .gantt-body .gantt-body-rows .gantt-body-row .gantt-body-cell:nth-child(7n+1) {
-          display: none !important;
-          width: 0 !important;
-          visibility: hidden !important;
-        }
-      `;
-      document.head.appendChild(style);
-      return;
-    }
-    
-    console.log(`Using selector: ${workingSelector}, found ${headerCells.length} header cells`);
-    
-    // Now try to identify weekends by date
-    headerCells.forEach((header, index) => {
-      const headerText = header.textContent?.trim() || '';
-      console.log(`Header ${index}: "${headerText}"`);
-      
-      let dateToCheck: Date | null = null;
-      const currentYear = new Date().getFullYear();
-      const currentMonth = new Date().getMonth();
-      
-      // Parse date from various formats
-      if (headerText.match(/^\d{1,2}$/)) {
-        // Just day number
-        const day = parseInt(headerText);
-        dateToCheck = new Date(currentYear, currentMonth, day);
-      } else if (headerText.match(/^\w{3}\s+\d{1,2}$/)) {
-        // "Jan 26" format
-        dateToCheck = new Date(`${headerText} ${currentYear}`);
-      }
-      
-      if (dateToCheck && !isNaN(dateToCheck.getTime())) {
-        const dayOfWeek = dateToCheck.getDay();
-        console.log(`Date: ${dateToCheck.toDateString()}, Day of week: ${dayOfWeek}`);
-        
-        if (dayOfWeek === 0 || dayOfWeek === 6) { // Weekend
-          console.log(`🚫 Hiding weekend: ${headerText} (${dayOfWeek})`);
-          (header as HTMLElement).style.display = 'none';
-          (header as HTMLElement).style.visibility = 'hidden';
-          (header as HTMLElement).style.width = '0';
-          
-          // Try to find corresponding body columns
-          const bodySelector = workingSelector.replace('header', 'body').replace('Header', 'Body');
-          const bodyColumns = ganttRef.current.querySelectorAll(bodySelector);
-          if (bodyColumns[index]) {
-            (bodyColumns[index] as HTMLElement).style.display = 'none';
-            (bodyColumns[index] as HTMLElement).style.visibility = 'hidden';
-            (bodyColumns[index] as HTMLElement).style.width = '0';
-          }
-        }
-      }
-    });
-  };
-  
-  // Manual weekend showing function
-  const showWeekendsManually = () => {
-    if (!ganttRef.current) return;
-    
-    console.log('✅ Manually showing weekend columns');
-    
-    // Remove all weekend hide styles
-    const styles = document.querySelectorAll('#weekend-hide-style, #weekend-hide-style-fallback');
-    styles.forEach(style => style.remove());
-    
-    // Restore all columns in the gantt container
-    const allElements = ganttRef.current.querySelectorAll('*');
-    allElements.forEach(el => {
-      (el as HTMLElement).style.display = '';
-      (el as HTMLElement).style.visibility = '';
-      (el as HTMLElement).style.width = '';
-    });
-  };
+
 
   const applyTaskColors = () => {
     if (!ganttRef.current || !project?.tasks) return;
@@ -483,23 +325,7 @@ export function GanttChart({ project, timelineScale, showWeekends, onEditTask, o
               </div>
             </div>
 
-            {/* Weekend Control */}
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => {
-                  console.log('Weekend toggle clicked. Current state:', showWeekends);
-                  console.log('Calling onWeekendToggle with:', !showWeekends);
-                  onWeekendToggle(!showWeekends);
-                }}
-                className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${
-                  !showWeekends
-                    ? 'bg-red-100 text-red-900'
-                    : 'bg-blue-100 text-blue-900'
-                }`}
-              >
-                {showWeekends ? 'Hide Weekends' : 'Show Weekends'}
-              </button>
-            </div>
+
           </div>
         </div>
         {onToggleFullScreen && (
