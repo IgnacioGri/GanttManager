@@ -339,10 +339,18 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
       }
     }
 
-    // Set dependencies and sync based on type
-    let finalDependencies = dependencyType === "dependent" ? dependencies : [];
-    let finalSyncedTaskId = dependencyType === "sync" ? syncedTaskId : null;
-    let finalSyncType = dependencyType === "sync" && syncedTaskId ? syncType : null;
+    // Set dependencies and sync based on type - ensure clean state
+    let finalDependencies = [];
+    let finalSyncedTaskId = null;
+    let finalSyncType = null;
+    
+    if (dependencyType === "dependent") {
+      finalDependencies = dependencies;
+    } else if (dependencyType === "sync") {
+      finalSyncedTaskId = syncedTaskId;
+      finalSyncType = syncedTaskId ? syncType : null;
+    }
+    // For manual mode, everything stays null/empty
 
     // Debug logging
     console.log("=== TASK SAVE DEBUG ===");
@@ -400,17 +408,26 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
           <div>
             <Label>Date Configuration</Label>
             <RadioGroup value={dependencyType} onValueChange={(value) => {
+              console.log("=== MODE CHANGE ===");
+              console.log("Changing from", dependencyType, "to", value);
+              
               setDependencyType(value as "manual" | "dependent" | "sync");
+              
               // Clear sync settings when switching away from sync mode
               if (value !== "sync") {
+                console.log("Clearing sync settings");
                 setSyncedTaskId(null);
                 setSyncType("");
               }
+              
               // Clear dependencies when switching away from dependent mode
               if (value !== "dependent") {
+                console.log("Clearing dependencies");
                 setDependencies([]);
                 setOffsetDays(0);
               }
+              
+              console.log("New dependencies:", value === "dependent" ? dependencies : []);
             }}>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="manual" id="manual" />
@@ -544,10 +561,10 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
                     <SelectValue placeholder="How should tasks sync?" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="start-start">Start together</SelectItem>
-                    <SelectItem value="end-end">End together</SelectItem>
-                    <SelectItem value="start-end">Start when reference ends</SelectItem>
-                    <SelectItem value="end-start">End when reference starts</SelectItem>
+                    <SelectItem value="start-start">Empezar al mismo tiempo</SelectItem>
+                    <SelectItem value="end-end">Terminar al mismo tiempo</SelectItem>
+                    <SelectItem value="start-end">Empezar cuando la otra termine</SelectItem>
+                    <SelectItem value="end-start">Terminar cuando la otra empiece</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -555,10 +572,10 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
               {syncedTaskId && syncType && (
                 <div className="p-3 bg-white border border-blue-200 rounded-lg">
                   <p className="text-sm text-blue-700">
-                    {syncType === "start-start" && "This task will start on the same day as the reference task."}
-                    {syncType === "end-end" && "This task will end on the same day as the reference task."}
-                    {syncType === "start-end" && "This task will start when the reference task ends."}
-                    {syncType === "end-start" && "This task will end when the reference task starts."}
+                    {syncType === "start-start" && "Esta tarea empezará el mismo día que la tarea de referencia."}
+                    {syncType === "end-end" && "Esta tarea terminará el mismo día que la tarea de referencia."}
+                    {syncType === "start-end" && "Esta tarea empezará cuando termine la tarea de referencia."}
+                    {syncType === "end-start" && "Esta tarea terminará cuando empiece la tarea de referencia."}
                   </p>
                 </div>
               )}
