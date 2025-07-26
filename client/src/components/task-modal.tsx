@@ -311,13 +311,9 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
             adjustedEndDate = parseInputDate(syncedTask.endDate);
             adjustedStartDate = calculateStartDateFromEndAndDuration(adjustedEndDate, duration);
             break;
-          case "start-end":
-            adjustedStartDate = parseInputDate(syncedTask.endDate);
-            adjustedEndDate = calculateEndDateFromDuration(adjustedStartDate, duration);
-            break;
-          case "end-start":
-            adjustedEndDate = parseInputDate(syncedTask.startDate);
-            adjustedStartDate = calculateStartDateFromEndAndDuration(adjustedEndDate, duration);
+          case "start-end-together":
+            adjustedStartDate = parseInputDate(syncedTask.startDate);
+            adjustedEndDate = parseInputDate(syncedTask.endDate);
             break;
         }
       }
@@ -561,10 +557,9 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
                     <SelectValue placeholder="How should tasks sync?" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="start-start">Empezar al mismo tiempo</SelectItem>
-                    <SelectItem value="end-end">Terminar al mismo tiempo</SelectItem>
-                    <SelectItem value="start-end">Empezar cuando la otra termine</SelectItem>
-                    <SelectItem value="end-start">Terminar cuando la otra empiece</SelectItem>
+                    <SelectItem value="start-start">Start Together</SelectItem>
+                    <SelectItem value="end-end">End Together</SelectItem>
+                    <SelectItem value="start-end-together">Start and End Together</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -572,10 +567,9 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
               {syncedTaskId && syncType && (
                 <div className="p-3 bg-white border border-blue-200 rounded-lg">
                   <p className="text-sm text-blue-700">
-                    {syncType === "start-start" && "Esta tarea empezará el mismo día que la tarea de referencia."}
-                    {syncType === "end-end" && "Esta tarea terminará el mismo día que la tarea de referencia."}
-                    {syncType === "start-end" && "Esta tarea empezará cuando termine la tarea de referencia."}
-                    {syncType === "end-start" && "Esta tarea terminará cuando empiece la tarea de referencia."}
+                    {syncType === "start-start" && "This task will start on the same day as the reference task."}
+                    {syncType === "end-end" && "This task will end on the same day as the reference task."}
+                    {syncType === "start-end-together" && "This task will start and end on the same days as the reference task."}
                   </p>
                 </div>
               )}
