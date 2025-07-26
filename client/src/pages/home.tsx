@@ -201,8 +201,15 @@ export default function Home() {
           <h1 className="text-3xl font-bold text-slate-900">Gantt Manager</h1>
           {project && (
             <div className="text-right">
-              <h2 className="text-xl font-bold text-slate-900">{project.name}</h2>
-              <p className="text-sm text-slate-500 uppercase tracking-wide">PROJECT</p>
+              <button 
+                onClick={() => setIsProjectListOpen(true)}
+                className="group text-right hover:bg-slate-50 p-2 rounded-lg transition-colors"
+              >
+                <h2 className="text-2xl font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
+                  {project.name}
+                </h2>
+                <p className="text-sm text-slate-500 uppercase tracking-wide">PROJECT • CLICK TO CHANGE</p>
+              </button>
             </div>
           )}
         </div>

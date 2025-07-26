@@ -127,6 +127,7 @@ export function Sidebar({
                 <label className="text-xs uppercase tracking-wide text-slate-600">SHOW WEEKENDS</label>
                 <Switch checked={showWeekends} onCheckedChange={onShowWeekendsChange} />
               </div>
+              <p className="text-xs text-slate-500 mt-1">Toggle weekend visibility in timeline</p>
             </div>
           </div>
 

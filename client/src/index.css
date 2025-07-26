@@ -147,6 +147,21 @@
   transition: transform 0.2s ease !important;
 }
 
+/* Dependency arrows styling */
+.gantt-container .gantt-dependency-arrow {
+  stroke: #94a3b8 !important;
+  stroke-width: 1px !important;
+  stroke-dasharray: 3,3 !important;
+  opacity: 0.7 !important;
+}
+
+/* Progress bars styling */
+.gantt-container .gantt-bar-progress {
+  fill: rgba(255, 255, 255, 0.4) !important;
+  stroke: rgba(255, 255, 255, 0.6) !important;
+  stroke-width: 1px !important;
+}
+
 /* Custom scrollbar */
 .gantt-container::-webkit-scrollbar {
   width: 8px;

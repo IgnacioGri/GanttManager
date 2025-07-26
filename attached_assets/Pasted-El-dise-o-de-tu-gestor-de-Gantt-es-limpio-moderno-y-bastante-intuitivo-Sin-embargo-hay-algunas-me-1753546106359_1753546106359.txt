@@ -1,0 +1,54 @@
+El diseño de tu gestor de Gantt es limpio, moderno y bastante intuitivo. Sin embargo, hay algunas mejoras que podrían optimizar aún más la experiencia del usuario (UX) y la eficiencia visual (UI). Aquí te dejo sugerencias puntuales divididas por área:
+
+🧭 Navegación y Jerarquía Visual
+1. Visibilidad del nombre del proyecto (en dispositivos chicos o pantalla reducida)
+
+Mejora sugerida: Haz que el título del proyecto sea editable o ampliable al hacer clic, con mayor jerarquía visual (por ejemplo, en tipografía más grande o con un ícono editable).
+Motivo: En vistas comprimidas, puede perder visibilidad o parecer un subtítulo.
+2. Botón “Full Screen” poco destacado
+
+Mejora sugerida: Convertirlo en un ícono más intuitivo (como 🔳) y reposicionarlo a la esquina superior derecha del área del gráfico Gantt.
+Motivo: Gantt Charts se benefician mucho de pantallas completas, y este botón debe invitar al usuario a hacerlo más fácilmente.
+🎨 Interfaz Gráfica (UI)
+3. Línea de tiempo más contrastada
+
+Mejora sugerida: Colores más contrastantes entre tareas completadas (porcentaje) y tareas futuras. Quizás usar:
+Azul completo para tareas 100% completadas
+Azul claro o gris para tareas no iniciadas
+Gradiente o barra rellena parcial para tareas en progreso (según el % completado).
+Motivo: Mejora la comprensión visual instantánea del estado de cada tarea.
+4. Ajuste visual de dependencias
+
+Mejora sugerida: Las flechas que indican dependencias podrían tener un color diferente (por ejemplo, gris claro o punteadas para dependencias suaves).
+Motivo: Ahora son muy visibles y generan algo de “ruido visual”.
+5. Revisión de tipografía y espaciado en la tabla
+
+Mejora sugerida: Aumentar ligeramente el interlineado entre tareas o usar una fuente monoespaciada más delgada.
+Motivo: Mejora legibilidad, especialmente si hay muchas tareas.
+📋 Funcionalidad
+6. Filtros por estado de tarea
+
+Mejora sugerida: Un botón tipo “filtro” que permita mostrar solo tareas “pendientes”, “en curso” o “completadas”.
+Motivo: Facilita la gestión de proyectos complejos con muchas tareas.
+7. Integración de progreso por tarea
+
+Mejora sugerida: Mostrar el progreso individual por tarea (por ejemplo, 75%) en la barra correspondiente.
+Motivo: Permite seguimiento sin abrir cada tarea.
+8. Columna “Responsable” (opcional)
+
+Mejora sugerida: Agregar una columna editable con nombre o ícono del responsable.
+Motivo: Útil para proyectos colaborativos.
+⚙️ Usabilidad
+9. Menú contextual mejorado
+
+Mejora sugerida: El menú de los tres puntitos (con "Edit Task", "Add Comment", etc.) podría incluir íconos o una animación de aparición más fluida.
+Motivo: Mejora la experiencia micro-interactiva.
+10. “Show Weekends” podría estar al lado del timeline
+
+Mejora sugerida: Cambiar su posición al área del gráfico (como checkbox flotante o sobre la escala de fechas).
+Motivo: Es una función que afecta el gráfico, por lo tanto, tiene más sentido tenerlo cerca del área afectada.
+✅ Positivos a mantener
+Diseño minimalista y moderno ✔️
+Paleta de colores suave y profesional ✔️
+Buena integración entre lista de tareas y timeline ✔️
+Menú contextual intuitivo ✔️

@@ -208,27 +208,39 @@ export function GanttChart({ project, timelineScale, showWeekends, onEditTask, o
   return (
     <div className={`${isFullScreen ? 'fixed inset-0 bg-slate-50 z-50 p-6' : 'h-full'} flex flex-col`}>
       <div className="mb-4 flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-slate-900">Gantt Chart</h2>
-          <p className="text-sm text-slate-500 uppercase tracking-wide">PROJECT TIMELINE</p>
+        <div className="flex items-center gap-4">
+          <div>
+            <h2 className="text-2xl font-bold text-slate-900">Gantt Chart</h2>
+            <p className="text-sm text-slate-500 uppercase tracking-wide">PROJECT TIMELINE</p>
+          </div>
+          {/* Filter buttons */}
+          <div className="flex bg-slate-100 rounded-lg p-1 ml-6">
+            <button className="px-3 py-1 text-xs font-medium text-slate-600 hover:text-slate-900 rounded-md transition-all">
+              All Tasks
+            </button>
+            <button className="px-3 py-1 text-xs font-medium text-slate-600 hover:text-slate-900 rounded-md transition-all">
+              Pending
+            </button>
+            <button className="px-3 py-1 text-xs font-medium text-slate-600 hover:text-slate-900 rounded-md transition-all">
+              In Progress
+            </button>
+            <button className="px-3 py-1 text-xs font-medium text-slate-600 hover:text-slate-900 rounded-md transition-all">
+              Completed
+            </button>
+          </div>
         </div>
         {onToggleFullScreen && (
           <Button
             variant="outline"
-            size="lg"
+            size="icon"
             onClick={onToggleFullScreen}
-            className="flex items-center gap-2 shadow-sm"
+            className="w-10 h-10 shadow-sm hover:shadow-md transition-all"
+            title={isFullScreen ? "Exit Full Screen" : "Full Screen"}
           >
             {isFullScreen ? (
-              <>
-                <Minimize className="w-5 h-5" />
-                Exit Full Screen
-              </>
+              <Minimize className="w-5 h-5" />
             ) : (
-              <>
-                <Maximize className="w-5 h-5" />
-                Full Screen
-              </>
+              <Maximize className="w-5 h-5" />
             )}
           </Button>
         )}
@@ -241,6 +253,7 @@ export function GanttChart({ project, timelineScale, showWeekends, onEditTask, o
           <div className="border-b border-slate-200 bg-slate-50 px-4 py-3 sticky top-0 h-[52px] flex items-center">
             <div className="w-full flex items-center text-xs font-medium text-slate-600 uppercase tracking-wide">
               <div className="flex-1">TASK NAME</div>
+              <div className="w-16 text-center">PROGRESS</div>
               <div className="w-20 text-center">START</div>
               <div className="w-20 text-center">END</div>
               <div className="w-10"></div>
@@ -257,6 +270,17 @@ export function GanttChart({ project, timelineScale, showWeekends, onEditTask, o
                       title="Click to edit task"
                     >
                       {task.name}
+                    </div>
+                  </div>
+                  <div className="w-16 text-center">
+                    <div className="flex items-center justify-center">
+                      <div className="w-8 h-2 bg-slate-200 rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-blue-500 transition-all duration-300"
+                          style={{ width: `${task.progress}%` }}
+                        />
+                      </div>
+                      <span className="text-xs text-slate-600 ml-1 font-medium">{task.progress}%</span>
                     </div>
                   </div>
                   <div className="w-20 text-xs text-slate-500 text-center">
