@@ -100,10 +100,14 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
       setStartDateInput(task.startDate ? formatDate(formatDateForInput(new Date(task.startDate))) : "");
       setEndDateInput(task.endDate ? formatDate(formatDateForInput(new Date(task.endDate))) : "");
       
-      // Check if this task has dependencies and restore dependency settings
-      if (task.dependencies.length > 0) {
+      // Check if this task has sync configuration first, then dependencies
+      if (task.syncedTaskId && task.syncType) {
+        // If task has sync, use manual mode (sync overrides dependencies)
+        setDependencyType("manual");
+        setOffsetDays(0);
+      } else if (task.dependencies.length > 0) {
         setDependencyType("dependent");
-        setOffsetDays(0); // Could be enhanced to store this in the future
+        setOffsetDays(0);
       } else {
         setDependencyType("manual");
         setOffsetDays(0);
@@ -160,9 +164,9 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
     setAttachments(prev => prev.filter((_, i) => i !== index));
   };
 
-  // Calculate dates based on dependency
+  // Calculate dates based on dependency (only if no sync is configured)
   useEffect(() => {
-    if (dependencyType === "dependent" && dependencies.length > 0 && project) {
+    if (dependencyType === "dependent" && dependencies.length > 0 && project && !syncedTaskId) {
       // Find the latest end date among all dependent tasks
       const dependentTasks = project.tasks.filter(t => dependencies.includes(t.id.toString()));
       if (dependentTasks.length > 0) {
@@ -201,7 +205,7 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
         setEndDateInput(formatDate(formatDateForInput(calculatedEndDate)));
       }
     }
-  }, [dependencyType, dependencies, offsetDays, duration, skipWeekends, autoAdjustWeekends, project]);
+  }, [dependencyType, dependencies, offsetDays, duration, skipWeekends, autoAdjustWeekends, project, syncedTaskId]);
 
   // Manual calculation functions to avoid useEffect loops
   const calculateDurationFromDates = (start: Date, end: Date): number => {
