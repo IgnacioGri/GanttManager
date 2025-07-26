@@ -302,6 +302,10 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
       // Sync mode: calculate dates based on synced task
       const syncedTask = project.tasks.find(t => t.id === syncedTaskId);
       if (syncedTask) {
+        // Inherit weekend settings from the synced task
+        setSkipWeekends(syncedTask.skipWeekends);
+        setAutoAdjustWeekends(syncedTask.autoAdjustWeekends);
+        
         switch (syncType) {
           case "start-start":
             adjustedStartDate = parseInputDate(syncedTask.startDate);
@@ -860,6 +864,7 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
               <Checkbox
                 id="skipWeekends"
                 checked={skipWeekends}
+                disabled={dependencyType === "sync"}
                 onCheckedChange={(checked) => setSkipWeekends(checked === true)}
               />
               <Label htmlFor="skipWeekends" className="text-sm">
@@ -870,6 +875,7 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
               <Checkbox
                 id="autoAdjust"
                 checked={autoAdjustWeekends}
+                disabled={dependencyType === "sync"}
                 onCheckedChange={(checked) => setAutoAdjustWeekends(checked === true)}
               />
               <Label htmlFor="autoAdjust" className="text-sm">
@@ -877,7 +883,10 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
               </Label>
             </div>
             <p className="text-xs text-slate-500">
-              Tasks starting on Saturday/Sunday will automatically move to Monday
+              {dependencyType === "sync" 
+                ? "These settings will be inherited from the reference task"
+                : "Tasks starting on Saturday/Sunday will automatically move to Monday"
+              }
             </p>
           </div>
         </div>
