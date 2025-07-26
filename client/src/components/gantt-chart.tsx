@@ -231,54 +231,105 @@ export function GanttChart({ project, timelineScale, showWeekends, onEditTask, o
   const hideWeekendsManually = () => {
     if (!ganttRef.current) return;
     
-    console.log('🔧 Manually hiding weekend columns');
+    console.log('🔧 Manually hiding weekend columns - inspecting DOM structure');
     
-    // Remove existing style
-    const existingStyle = document.getElementById('weekend-hide-style');
-    if (existingStyle) {
-      existingStyle.remove();
+    // Let's find the actual DOM structure used by Frappe Gantt
+    const allElements = ganttRef.current.querySelectorAll('*');
+    console.log('Total elements in Gantt:', allElements.length);
+    
+    // Try different possible selectors for Frappe Gantt
+    const possibleHeaderSelectors = [
+      '.gantt-header .grid-row .grid-col',
+      '.gantt-grid-header .gantt-grid-cell',
+      '.gantt-timeline .gantt-header-row .gantt-header-cell',
+      '.gantt .gantt-header .gantt-dates',
+      'svg .tick',
+      '.gantt-dates-header .gantt-date',
+      '.gantt-container .gantt-header .gantt-upper-header .gantt-upper-header-cell'
+    ];
+    
+    let headerCells: NodeListOf<Element> | null = null;
+    let workingSelector = '';
+    
+    for (const selector of possibleHeaderSelectors) {
+      const elements = ganttRef.current.querySelectorAll(selector);
+      if (elements.length > 0) {
+        console.log(`Found ${elements.length} elements with selector: ${selector}`);
+        if (elements.length > 5) { // Likely the daily headers
+          headerCells = elements;
+          workingSelector = selector;
+          break;
+        }
+      }
     }
     
-    // Find all date headers and identify weekends
-    const headerCells = ganttRef.current.querySelectorAll('.gantt-header .grid-row:first-child .grid-col');
-    const bodyColumns = ganttRef.current.querySelectorAll('.gantt-body .grid-col');
+    if (!headerCells || headerCells.length === 0) {
+      console.log('❌ Could not find header cells with any selector. Available classes:');
+      const uniqueClasses = new Set<string>();
+      ganttRef.current.querySelectorAll('*').forEach(el => {
+        if (el.className) {
+          el.className.split(' ').forEach(cls => {
+            if (cls.trim()) uniqueClasses.add(cls.trim());
+          });
+        }
+      });
+      console.log('Available CSS classes:', Array.from(uniqueClasses).sort());
+      
+      // Fallback: Use brute force CSS injection
+      const style = document.createElement('style');
+      style.id = 'weekend-hide-style-fallback';
+      style.textContent = `
+        .gantt .gantt-timeline .gantt-header .gantt-upper-header .gantt-upper-header-cell:nth-child(7n),
+        .gantt .gantt-timeline .gantt-header .gantt-upper-header .gantt-upper-header-cell:nth-child(7n+1),
+        .gantt .gantt-timeline .gantt-body .gantt-body-rows .gantt-body-row .gantt-body-cell:nth-child(7n),
+        .gantt .gantt-timeline .gantt-body .gantt-body-rows .gantt-body-row .gantt-body-cell:nth-child(7n+1) {
+          display: none !important;
+          width: 0 !important;
+          visibility: hidden !important;
+        }
+      `;
+      document.head.appendChild(style);
+      return;
+    }
     
-    console.log('Found header cells:', headerCells.length, 'body columns:', bodyColumns.length);
+    console.log(`Using selector: ${workingSelector}, found ${headerCells.length} header cells`);
     
+    // Now try to identify weekends by date
     headerCells.forEach((header, index) => {
       const headerText = header.textContent?.trim() || '';
+      console.log(`Header ${index}: "${headerText}"`);
       
-      // Parse the date from various formats Frappe Gantt might use
       let dateToCheck: Date | null = null;
       const currentYear = new Date().getFullYear();
+      const currentMonth = new Date().getMonth();
       
-      // Try "Jan 26" format
-      const monthDayMatch = headerText.match(/^(\w{3})\s+(\d{1,2})$/);
-      if (monthDayMatch) {
-        dateToCheck = new Date(`${monthDayMatch[1]} ${monthDayMatch[2]} ${currentYear}`);
-      }
-      
-      // Try just number format (day of month)
-      if (!dateToCheck || isNaN(dateToCheck.getTime())) {
-        const dayNum = parseInt(headerText);
-        if (!isNaN(dayNum) && dayNum >= 1 && dayNum <= 31) {
-          const today = new Date();
-          dateToCheck = new Date(today.getFullYear(), today.getMonth(), dayNum);
-        }
+      // Parse date from various formats
+      if (headerText.match(/^\d{1,2}$/)) {
+        // Just day number
+        const day = parseInt(headerText);
+        dateToCheck = new Date(currentYear, currentMonth, day);
+      } else if (headerText.match(/^\w{3}\s+\d{1,2}$/)) {
+        // "Jan 26" format
+        dateToCheck = new Date(`${headerText} ${currentYear}`);
       }
       
       if (dateToCheck && !isNaN(dateToCheck.getTime())) {
         const dayOfWeek = dateToCheck.getDay();
-        if (dayOfWeek === 0 || dayOfWeek === 6) { // Sunday (0) or Saturday (6)
-          console.log('🚫 Hiding weekend column:', headerText, 'Day:', dayOfWeek);
-          
-          // Hide header
+        console.log(`Date: ${dateToCheck.toDateString()}, Day of week: ${dayOfWeek}`);
+        
+        if (dayOfWeek === 0 || dayOfWeek === 6) { // Weekend
+          console.log(`🚫 Hiding weekend: ${headerText} (${dayOfWeek})`);
           (header as HTMLElement).style.display = 'none';
+          (header as HTMLElement).style.visibility = 'hidden';
+          (header as HTMLElement).style.width = '0';
           
-          // Hide corresponding body column
-          const bodyColumn = bodyColumns[index];
-          if (bodyColumn) {
-            (bodyColumn as HTMLElement).style.display = 'none';
+          // Try to find corresponding body columns
+          const bodySelector = workingSelector.replace('header', 'body').replace('Header', 'Body');
+          const bodyColumns = ganttRef.current.querySelectorAll(bodySelector);
+          if (bodyColumns[index]) {
+            (bodyColumns[index] as HTMLElement).style.display = 'none';
+            (bodyColumns[index] as HTMLElement).style.visibility = 'hidden';
+            (bodyColumns[index] as HTMLElement).style.width = '0';
           }
         }
       }
@@ -291,16 +342,16 @@ export function GanttChart({ project, timelineScale, showWeekends, onEditTask, o
     
     console.log('✅ Manually showing weekend columns');
     
-    // Remove weekend hide style
-    const existingStyle = document.getElementById('weekend-hide-style');
-    if (existingStyle) {
-      existingStyle.remove();
-    }
+    // Remove all weekend hide styles
+    const styles = document.querySelectorAll('#weekend-hide-style, #weekend-hide-style-fallback');
+    styles.forEach(style => style.remove());
     
-    // Restore all columns
-    const allColumns = ganttRef.current.querySelectorAll('.gantt-header .grid-col, .gantt-body .grid-col');
-    allColumns.forEach(col => {
-      (col as HTMLElement).style.display = '';
+    // Restore all columns in the gantt container
+    const allElements = ganttRef.current.querySelectorAll('*');
+    allElements.forEach(el => {
+      (el as HTMLElement).style.display = '';
+      (el as HTMLElement).style.visibility = '';
+      (el as HTMLElement).style.width = '';
     });
   };
 
