@@ -131,13 +131,15 @@ export function GanttChart({ project, timelineScale, showWeekends, onEditTask, o
 
     try {
       // Custom options for Gantt library with holidays support
+      const ignorePeriods = showWeekends ? getArgentineHolidays() : ['weekend', ...getArgentineHolidays()];
+      
       const ganttOptions: any = {
         view_mode: timelineScale,
         date_format: 'YYYY-MM-DD',
         language: 'en',
         readonly: false,
         show_today_line: true,
-        holidays: getArgentineHolidays(),
+        ignore_periods: ignorePeriods,
         on_click: (task: any) => {
           const originalTask = project.tasks.find(t => t.id.toString() === task.id);
           if (originalTask) {
@@ -156,53 +158,8 @@ export function GanttChart({ project, timelineScale, showWeekends, onEditTask, o
 
       ganttInstance.current = new window.Gantt(ganttRef.current, tasks, ganttOptions);
       
-      // Apply custom styling and weekend/holiday marking after initialization
+      // Apply custom styling after initialization
       setTimeout(() => {
-        // Mark weekends and holidays
-        if (ganttRef.current) {
-          const dateHeaders = ganttRef.current.querySelectorAll('.gantt-grid-header .gantt-grid-row:first-child .gantt-grid-cell');
-          const holidays = getArgentineHolidays();
-          
-          dateHeaders.forEach((header: any, index: number) => {
-            const dateText = header.textContent?.trim();
-            if (dateText) {
-              // Parse the date from the header
-              let date: Date | null = null;
-              
-              if (timelineScale === 'Day') {
-                // For day view, the header might show "Jan 14" format
-                const year = new Date().getFullYear();
-                date = new Date(`${dateText} ${year}`);
-              }
-              
-              if (date && !isNaN(date.getTime())) {
-                const dayOfWeek = date.getDay();
-                const dateString = date.toISOString().split('T')[0];
-                
-                // Find corresponding column
-                const columns = ganttRef.current?.querySelectorAll(`.gantt-grid-column:nth-child(${index + 1})`);
-                
-                columns?.forEach((column: any) => {
-                  // Mark weekends
-                  if (!showWeekends) {
-                    if (dayOfWeek === 0 || dayOfWeek === 6) {
-                      column.style.display = 'none';
-                    }
-                  } else {
-                    if (dayOfWeek === 0 || dayOfWeek === 6) {
-                      column.classList.add('weekend-column');
-                    }
-                  }
-                  
-                  // Mark holidays
-                  if (holidays.includes(dateString)) {
-                    column.classList.add('holiday-column');
-                  }
-                });
-              }
-            }
-          });
-        }
         
         project.tasks.forEach((task, index) => {
           // Phase-based colors
@@ -256,7 +213,7 @@ export function GanttChart({ project, timelineScale, showWeekends, onEditTask, o
         ganttInstance.current = null;
       }
     };
-  }, [project, timelineScale, showWeekends, getArgentineHolidays]);
+  }, [project, timelineScale, showWeekends]);
 
   if (!project) {
     return (
