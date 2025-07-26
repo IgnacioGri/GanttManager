@@ -190,6 +190,10 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
           calculatedStartDate = adjustDateForWeekends(calculatedStartDate);
         }
         
+        console.log("=== DEPENDENCY CALCULATION ===");
+        console.log("Calculated start date:", calculatedStartDate);
+        console.log("Current dependency type:", dependencyType);
+        
         setStartDate(calculatedStartDate);
         setStartDateInput(formatDate(formatDateForInput(calculatedStartDate)));
         
@@ -585,6 +589,10 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
                           const [day, month, year] = value.split('/');
                           const fullYear = parseInt(year) + 2000;
                           const date = new Date(fullYear, parseInt(month) - 1, parseInt(day));
+                          console.log("=== MANUAL DATE INPUT ===");
+                          console.log("User input:", value);
+                          console.log("Parsed date:", date);
+                          console.log("Dependency type:", dependencyType);
                           setStartDate(date);
                           // Auto-calculate end date if we have duration
                           if (duration > 0) {
