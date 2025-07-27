@@ -347,14 +347,37 @@ Cambia la vista temporal usando los controles superiores:
 
 Gantt Manager permite crear proyectos completos importando datos desde archivos de Excel (.xlsx).
 
+#### Ubicación en la Interfaz
+
+Para acceder a las funciones de importación/exportación:
+
+1. **Ubica la barra lateral izquierda** de la aplicación
+2. **Busca la sección "PROJECT ACTIONS"** (en mayúsculas)
+3. **Haz clic en el botón desplegable "Project Actions"**
+4. **Verás las siguientes opciones**:
+   - 📁 New Project
+   - 📂 Browse Projects  
+   - 📤 **Import from Excel** ← Esta es la función de importación
+   - 📥 Export Excel
+   - 📄 Download Excel Template (si está disponible)
+   - ❓ Manual de Usuario
+   - 🗑️ Delete Project
+
 #### Descargar Plantilla
 
+**Opción 1: Desde el modal de importación**
 1. En el menú "Project Actions"
-2. Selecciona "Download Excel Template"
-3. Se descargará un archivo `Plantilla_Gantt.xlsx` con:
-   - Estructura de columnas predefinida
-   - Ejemplos de datos
-   - Formato correcto para fechas y dependencias
+2. Selecciona "Import from Excel" 
+3. En el modal que se abre, haz clic en "Descargar Plantilla"
+
+**Opción 2: Directamente desde la URL**
+- Navega a `/api/excel-template` en tu navegador
+- Se descargará automáticamente el archivo `Plantilla_Gantt.xlsx`
+
+**La plantilla incluye:**
+- Estructura de columnas predefinida
+- Ejemplos de datos
+- Formato correcto para fechas y dependencias
 
 #### Estructura de la Plantilla
 
@@ -378,19 +401,31 @@ Gantt Manager permite crear proyectos completos importando datos desde archivos 
    - Para dependencias, usa los nombres exactos de otras tareas
 
 2. **Importar el archivo**:
-   - En el menú "Project Actions"
-   - Selecciona "Import Excel"
-   - Selecciona tu archivo .xlsx preparado
-   - El sistema creará automáticamente:
-     - Un nuevo proyecto con el nombre del archivo
+   - En el menú "Project Actions" de la barra lateral
+   - Selecciona "Import from Excel"
+   - **Se abrirá el modal "Importar Proyecto desde Excel"** que contiene:
+     - Una sección azul con botón "Descargar Plantilla"
+     - Información sobre el nombre del proyecto (se usa el nombre del archivo)
+     - Zona de selección de archivo
+   - **Selecciona tu archivo**:
+     - Haz clic en "Seleccionar archivo" o
+     - Arrastra y suelta tu archivo .xlsx en la zona indicada
+   - **Haz clic en "Importar"**
+   - **El sistema procesará y creará**:
+     - Un nuevo proyecto con el nombre del archivo (sin extensión)
      - Todas las tareas con sus fechas y configuraciones
-     - Tags con colores automáticos
-     - Dependencias entre tareas
+     - Tags con colores automáticos asignados
+     - Dependencias entre tareas según los nombres especificados
+   - **Redirección automática**: Serás llevado directamente al nuevo proyecto importado
 
 3. **Verificación post-importación**:
-   - Revisa que todas las tareas se hayan importado correctamente
-   - Verifica las fechas y dependencias
-   - Ajusta manualmente cualquier configuración específica
+   - **Mensaje de éxito**: Aparecerá una notificación "Importación exitosa" si todo salió bien
+   - **En caso de error**: Se mostrará un mensaje específico del problema encontrado
+   - **Revisa el proyecto creado**:
+     - Verifica que todas las tareas se hayan importado correctamente
+     - Confirma las fechas y dependencias
+     - Revisa que los tags se hayan creado con colores apropiados
+   - **Ajustes manuales**: Modifica cualquier configuración específica según tus necesidades
 
 #### Consejos para Importación Exitosa
 
