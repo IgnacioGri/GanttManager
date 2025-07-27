@@ -6,6 +6,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { PlusCircle, FolderOpen, Download, ChevronLeft, ChevronRight, Plus, ChevronDown, Trash2, FolderPlus } from "lucide-react";
 import { formatDate } from "@/lib/date-utils";
 import type { ProjectWithTasks } from "@shared/schema";
+import TagManager from "./tag-manager";
 
 interface SidebarProps {
   project?: ProjectWithTasks;
@@ -154,6 +155,11 @@ export function Sidebar({
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
+
+          {/* Tag Manager */}
+          {project && (
+            <TagManager projectId={project.id} />
+          )}
 
         </div>
       )}

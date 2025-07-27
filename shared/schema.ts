@@ -11,6 +11,14 @@ export const projects = pgTable("projects", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+export const tags = pgTable("tags", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").notNull(),
+  name: text("name").notNull(),
+  color: text("color").notNull(), // Hex color code
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const tasks = pgTable("tasks", {
   id: serial("id").primaryKey(),
   projectId: integer("project_id").notNull(),
@@ -27,6 +35,8 @@ export const tasks = pgTable("tasks", {
   // Date synchronization fields
   syncedTaskId: integer("synced_task_id"), // ID of the task to sync with
   syncType: text("sync_type"), // "start-start" | "end-end" | "start-end" | "end-start"
+  // Tags
+  tagIds: integer("tag_ids").array().default([]).notNull(), // Array of tag IDs
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -35,6 +45,12 @@ export const insertProjectSchema = createInsertSchema(projects).pick({
   name: true,
   startDate: true,
   endDate: true,
+});
+
+export const insertTagSchema = createInsertSchema(tags).pick({
+  projectId: true,
+  name: true,
+  color: true,
 });
 
 export const insertTaskSchema = createInsertSchema(tasks).pick({
@@ -51,6 +67,7 @@ export const insertTaskSchema = createInsertSchema(tasks).pick({
   autoAdjustWeekends: true,
   syncedTaskId: true,
   syncType: true,
+  tagIds: true,
 });
 
 export const updateTaskSchema = insertTaskSchema.partial().extend({
@@ -59,10 +76,13 @@ export const updateTaskSchema = insertTaskSchema.partial().extend({
 
 export type InsertProject = z.infer<typeof insertProjectSchema>;
 export type Project = typeof projects.$inferSelect;
+export type InsertTag = z.infer<typeof insertTagSchema>;
+export type Tag = typeof tags.$inferSelect;
 export type InsertTask = z.infer<typeof insertTaskSchema>;
 export type UpdateTask = z.infer<typeof updateTaskSchema>;
 export type Task = typeof tasks.$inferSelect;
 
 export interface ProjectWithTasks extends Project {
   tasks: Task[];
+  tags: Tag[];
 }

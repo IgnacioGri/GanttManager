@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import multer from "multer";
 import { storage } from "./storage";
-import { insertProjectSchema, insertTaskSchema, updateTaskSchema } from "@shared/schema";
+import { insertProjectSchema, insertTaskSchema, insertTagSchema, updateTaskSchema } from "@shared/schema";
 
 const upload = multer({ 
   storage: multer.memoryStorage(),
@@ -267,6 +267,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(file);
     } catch (error) {
       res.status(500).json({ message: "File upload failed" });
+    }
+  });
+
+  // Tags
+  app.get("/api/projects/:projectId/tags", async (req, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      const tags = await storage.getProjectTags(projectId);
+      res.json(tags);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch tags" });
+    }
+  });
+
+  app.post("/api/projects/:projectId/tags", async (req, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      const validatedData = insertTagSchema.parse({ ...req.body, projectId });
+      const tag = await storage.createTag(validatedData);
+      res.status(201).json(tag);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid tag data" });
+    }
+  });
+
+  app.put("/api/tags/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const validatedData = insertTagSchema.partial().parse(req.body);
+      const tag = await storage.updateTag(id, validatedData);
+      if (!tag) {
+        return res.status(404).json({ message: "Tag not found" });
+      }
+      res.json(tag);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid tag data" });
+    }
+  });
+
+  app.delete("/api/tags/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const success = await storage.deleteTag(id);
+      if (!success) {
+        return res.status(404).json({ message: "Tag not found" });
+      }
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete tag" });
     }
   });
 

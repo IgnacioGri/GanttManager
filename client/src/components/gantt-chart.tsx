@@ -1,10 +1,12 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ZoomOut, ZoomIn, Maximize, MessageCircle, Paperclip, Edit3, Trash2, Minimize, MoreHorizontal } from "lucide-react";
 import { createGanttTasks } from "@/lib/gantt-utils";
 import { formatDate } from "@/lib/date-utils";
-import type { ProjectWithTasks, Task } from "@shared/schema";
+import type { ProjectWithTasks, Task, Tag } from "@shared/schema";
+import TaskTags from "@/components/task-tags";
 
 type TaskFilter = "all" | "pending" | "in-progress" | "completed";
 
@@ -31,6 +33,12 @@ export function GanttChart({ project, timelineScale, onEditTask, onAddComment, o
   const ganttRef = useRef<HTMLDivElement>(null);
   const ganttInstance = useRef<any>(null);
   const [taskFilter, setTaskFilter] = useState<TaskFilter>("all");
+
+  // Get project tags
+  const { data: tags = [] } = useQuery<Tag[]>({
+    queryKey: ["/api/projects", project?.id, "tags"],
+    enabled: !!project?.id,
+  });
 
   // Argentine holidays for 2025
   const getArgentineHolidays = () => {
@@ -376,6 +384,11 @@ export function GanttChart({ project, timelineScale, onEditTask, onAddComment, o
                     >
                       {task.name}
                     </div>
+                    {task.tagIds && task.tagIds.length > 0 && (
+                      <div className="mt-1">
+                        <TaskTags tagIds={task.tagIds} tags={tags} maxVisible={3} />
+                      </div>
+                    )}
                   </div>
                   <div className="w-16 text-center">
                     <div className="flex items-center justify-center">

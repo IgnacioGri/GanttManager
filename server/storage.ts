@@ -1,4 +1,4 @@
-import { projects, tasks, type Project, type Task, type InsertProject, type InsertTask, type UpdateTask, type ProjectWithTasks } from "@shared/schema";
+import { projects, tasks, tags, type Project, type Task, type Tag, type InsertProject, type InsertTask, type InsertTag, type UpdateTask, type ProjectWithTasks } from "@shared/schema";
 
 export interface IStorage {
   // Projects
@@ -15,19 +15,29 @@ export interface IStorage {
   createTask(task: InsertTask): Promise<Task>;
   updateTask(data: UpdateTask): Promise<Task | undefined>;
   deleteTask(id: number): Promise<boolean>;
+  
+  // Tags
+  getProjectTags(projectId: number): Promise<Tag[]>;
+  createTag(tag: InsertTag): Promise<Tag>;
+  updateTag(id: number, tag: Partial<InsertTag>): Promise<Tag | undefined>;
+  deleteTag(id: number): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
   private projects: Map<number, Project>;
   private tasks: Map<number, Task>;
+  private tags: Map<number, Tag>;
   private currentProjectId: number;
   private currentTaskId: number;
+  private currentTagId: number;
 
   constructor() {
     this.projects = new Map();
     this.tasks = new Map();
+    this.tags = new Map();
     this.currentProjectId = 1;
     this.currentTaskId = 1;
+    this.currentTagId = 1;
     this.initializeSampleData();
   }
 
@@ -61,6 +71,7 @@ export class MemStorage implements IStorage {
         autoAdjustWeekends: true,
         syncedTaskId: null,
         syncType: null,
+        tagIds: [1], // Planning tag
         createdAt: new Date(),
         updatedAt: new Date()
       },
@@ -79,6 +90,7 @@ export class MemStorage implements IStorage {
         autoAdjustWeekends: true,
         syncedTaskId: null,
         syncType: null,
+        tagIds: [2], // Design tag
         createdAt: new Date(),
         updatedAt: new Date()
       },
@@ -97,6 +109,7 @@ export class MemStorage implements IStorage {
         autoAdjustWeekends: true,
         syncedTaskId: null,
         syncType: null,
+        tagIds: [3], // Development tag
         createdAt: new Date(),
         updatedAt: new Date()
       },
@@ -115,6 +128,7 @@ export class MemStorage implements IStorage {
         autoAdjustWeekends: true,
         syncedTaskId: null,
         syncType: null,
+        tagIds: [3], // Development tag
         createdAt: new Date(),
         updatedAt: new Date()
       },
@@ -133,6 +147,7 @@ export class MemStorage implements IStorage {
         autoAdjustWeekends: true,
         syncedTaskId: null,
         syncType: null,
+        tagIds: [4], // Testing tag
         createdAt: new Date(),
         updatedAt: new Date()
       },
@@ -151,6 +166,7 @@ export class MemStorage implements IStorage {
         autoAdjustWeekends: true,
         syncedTaskId: null,
         syncType: null,
+        tagIds: [5], // Deployment tag
         createdAt: new Date(),
         updatedAt: new Date()
       }
@@ -158,6 +174,48 @@ export class MemStorage implements IStorage {
 
     sampleTasks.forEach(task => this.tasks.set(task.id, task));
     this.currentTaskId = 7;
+    
+    // Create sample tags
+    const sampleTags: Tag[] = [
+      {
+        id: 1,
+        projectId: 1,
+        name: "Planning",
+        color: "#8B5CF6", // Purple
+        createdAt: new Date()
+      },
+      {
+        id: 2,
+        projectId: 1,
+        name: "Design",
+        color: "#06B6D4", // Cyan
+        createdAt: new Date()
+      },
+      {
+        id: 3,
+        projectId: 1,
+        name: "Development",
+        color: "#3B82F6", // Blue
+        createdAt: new Date()
+      },
+      {
+        id: 4,
+        projectId: 1,
+        name: "Testing",
+        color: "#F59E0B", // Amber
+        createdAt: new Date()
+      },
+      {
+        id: 5,
+        projectId: 1,
+        name: "Deployment",
+        color: "#10B981", // Green
+        createdAt: new Date()
+      }
+    ];
+
+    sampleTags.forEach(tag => this.tags.set(tag.id, tag));
+    this.currentTagId = 6;
   }
 
   // Projects
@@ -170,7 +228,8 @@ export class MemStorage implements IStorage {
     if (!project) return undefined;
     
     const projectTasks = Array.from(this.tasks.values()).filter(task => task.projectId === id);
-    return { ...project, tasks: projectTasks };
+    const projectTags = Array.from(this.tags.values()).filter(tag => tag.projectId === id);
+    return { ...project, tasks: projectTasks, tags: projectTags };
   }
 
   async getAllProjects(): Promise<Project[]> {
@@ -231,6 +290,7 @@ export class MemStorage implements IStorage {
       attachments: Array.isArray(insertTask.attachments) ? insertTask.attachments : [],
       skipWeekends: insertTask.skipWeekends ?? true,
       autoAdjustWeekends: insertTask.autoAdjustWeekends ?? true,
+      tagIds: insertTask.tagIds ?? [],
       id,
       createdAt: now,
       updatedAt: now
@@ -346,6 +406,50 @@ export class MemStorage implements IStorage {
     });
     
     return this.tasks.delete(id);
+  }
+
+  // Tags
+  async getProjectTags(projectId: number): Promise<Tag[]> {
+    return Array.from(this.tags.values()).filter(tag => tag.projectId === projectId);
+  }
+
+  async createTag(insertTag: InsertTag): Promise<Tag> {
+    const id = this.currentTagId++;
+    const now = new Date();
+    const tag: Tag = { 
+      ...insertTag, 
+      id, 
+      createdAt: now
+    };
+    this.tags.set(id, tag);
+    return tag;
+  }
+
+  async updateTag(id: number, tagData: Partial<InsertTag>): Promise<Tag | undefined> {
+    const tag = this.tags.get(id);
+    if (!tag) return undefined;
+    
+    const updatedTag: Tag = { 
+      ...tag, 
+      ...tagData
+    };
+    this.tags.set(id, updatedTag);
+    return updatedTag;
+  }
+
+  async deleteTag(id: number): Promise<boolean> {
+    // Remove tag from all tasks that have it
+    const projectTasks = Array.from(this.tasks.values()).filter(task => 
+      task.tagIds && task.tagIds.includes(id)
+    );
+    
+    projectTasks.forEach(task => {
+      task.tagIds = task.tagIds.filter(tagId => tagId !== id);
+      task.updatedAt = new Date();
+      this.tasks.set(task.id, task);
+    });
+    
+    return this.tags.delete(id);
   }
 }
 

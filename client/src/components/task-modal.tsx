@@ -15,7 +15,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { formatDate, formatDateForInput, parseInputDate, adjustDateForWeekends, addBusinessDays, calculateBusinessDays } from "@/lib/date-utils";
-import type { Task, ProjectWithTasks } from "@shared/schema";
+import type { Task, ProjectWithTasks, Tag } from "@shared/schema";
 
 interface TaskModalProps {
   isOpen: boolean;
@@ -51,6 +51,9 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
   // Date synchronization states
   const [syncedTaskId, setSyncedTaskId] = useState<number | null>(null);
   const [syncType, setSyncType] = useState<string>("");
+  
+  // Tag selection state
+  const [selectedTagIds, setSelectedTagIds] = useState<number[]>([]);
 
   const createTaskMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -95,6 +98,7 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
       setAttachments(task.attachments);
       setSyncedTaskId(task.syncedTaskId || null);
       setSyncType(task.syncType || "");
+      setSelectedTagIds(task.tagIds || []);
       
       // Update date inputs
       setStartDateInput(task.startDate ? formatDate(formatDateForInput(new Date(task.startDate))) : "");
@@ -127,6 +131,7 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
       setAttachments([]);
       setSyncedTaskId(null);
       setSyncType("");
+      setSelectedTagIds([]);
       
       // Reset date inputs
       setStartDateInput("");
@@ -429,6 +434,7 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
       autoAdjustWeekends,
       syncedTaskId: finalSyncedTaskId,
       syncType: finalSyncType,
+      tagIds: selectedTagIds,
     };
     
     console.log("Final task data:", taskData);
@@ -920,6 +926,42 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
               </div>
             )}
           </div>
+
+          {/* Tag Selection */}
+          {project && project.tags && project.tags.length > 0 && (
+            <div>
+              <Label>Tags</Label>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {project.tags.map((tag) => (
+                  <button
+                    key={tag.id}
+                    type="button"
+                    onClick={() => {
+                      setSelectedTagIds(prev => 
+                        prev.includes(tag.id) 
+                          ? prev.filter(id => id !== tag.id)
+                          : [...prev, tag.id]
+                      );
+                    }}
+                    className={`px-3 py-1 text-xs rounded-full border transition-all ${
+                      selectedTagIds.includes(tag.id)
+                        ? 'text-white border-transparent'
+                        : 'text-gray-600 border-gray-300 hover:border-gray-400'
+                    }`}
+                    style={{
+                      backgroundColor: selectedTagIds.includes(tag.id) ? tag.color : 'transparent',
+                      borderColor: selectedTagIds.includes(tag.id) ? tag.color : undefined
+                    }}
+                  >
+                    {tag.name}
+                  </button>
+                ))}
+              </div>
+              <p className="text-xs text-slate-500 mt-2">
+                Click tags to add or remove them from this task
+              </p>
+            </div>
+          )}
 
           <div className="bg-slate-50 p-4 rounded-lg space-y-3">
             <Label>Advanced Date Options</Label>
