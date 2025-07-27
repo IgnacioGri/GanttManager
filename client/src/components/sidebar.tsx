@@ -164,12 +164,6 @@ export function Sidebar({
                   <Download className="w-4 h-4 mr-2" />
                   Export Excel
                 </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/help">
-                    <HelpCircle className="w-4 h-4 mr-2" />
-                    Manual de Usuario
-                  </Link>
-                </DropdownMenuItem>
                 <DropdownMenuItem 
                   onClick={() => {
                     if (project && confirm('¿Estás seguro de que quieres eliminar este proyecto? Se eliminarán todas las tareas asociadas.')) {
