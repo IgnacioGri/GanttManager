@@ -107,7 +107,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      const project = await storage.createProject(validatedData);
+      const project = await storage.createProject(validatedData, userId);
       res.status(201).json(project);
     } catch (error) {
       console.error("Error creating project:", error);
@@ -290,8 +290,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const project = await storage.createProject({
         name: projectName,
         startDate: excelData[0].startDate,
-        endDate: excelData[excelData.length - 1].endDate,
-        userId: userId
+        endDate: excelData[excelData.length - 1].endDate
       }, userId);
 
       // Convert Excel data to tasks

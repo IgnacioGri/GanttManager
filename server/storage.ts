@@ -27,8 +27,8 @@ export interface IStorage {
   getProject(id: number, userId: string): Promise<Project | undefined>;
   getProjectWithTasks(id: number, userId: string): Promise<ProjectWithTasks | undefined>;
   getAllProjects(userId: string): Promise<Project[]>;
-  createProject(project: InsertProject): Promise<Project>;
-  updateProject(id: number, userId: string, project: Partial<InsertProject>): Promise<Project | undefined>;
+  createProject(project: InsertProject, userId: string): Promise<Project>;
+  updateProject(id: number, userId: string, projectData: Partial<InsertProject>): Promise<Project | undefined>;
   deleteProject(id: number, userId: string): Promise<boolean>;
   
   // Tasks
@@ -87,10 +87,10 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(projects).where(eq(projects.userId, userId));
   }
 
-  async createProject(insertProject: InsertProject): Promise<Project> {
+  async createProject(insertProject: InsertProject, userId: string): Promise<Project> {
     const [project] = await db
       .insert(projects)
-      .values(insertProject)
+      .values({ ...insertProject, userId })
       .returning();
     return project;
   }
