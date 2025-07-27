@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { PlusCircle, FolderOpen, Download, ChevronLeft, ChevronRight, Plus, ChevronDown, Trash2, FolderPlus, HelpCircle, LogOut, Upload } from "lucide-react";
+import { PlusCircle, FolderOpen, Download, ChevronLeft, ChevronRight, Plus, ChevronDown, Trash2, FolderPlus, LogOut, Upload } from "lucide-react";
 import { formatDate } from "@/lib/date-utils";
 import type { ProjectWithTasks } from "@shared/schema";
 import TagManager from "./tag-manager";
@@ -90,11 +90,6 @@ export function Sidebar({
           </div>
           <Button variant="ghost" size="icon" onClick={onNewTask} disabled={!project} title="Add Task">
             <Plus className="w-4 h-4" />
-          </Button>
-          <Button variant="ghost" size="icon" asChild title="Manual de Usuario">
-            <Link href="/help">
-              <HelpCircle className="w-4 h-4" />
-            </Link>
           </Button>
         </div>
       ) : (
@@ -192,21 +187,6 @@ export function Sidebar({
           {project && (
             <TagManager projectId={project.id} />
           )}
-
-          {/* Help Section */}
-          <div className="bg-card p-4 rounded-lg shadow-sm border border-border">
-            <h3 className="text-sm uppercase tracking-wide text-muted-foreground mb-3">AYUDA</h3>
-            <Button 
-              variant="outline" 
-              className="w-full justify-start" 
-              asChild
-            >
-              <Link href="/help">
-                <HelpCircle className="w-4 h-4 mr-2" />
-                Manual de Usuario
-              </Link>
-            </Button>
-          </div>
 
 
 

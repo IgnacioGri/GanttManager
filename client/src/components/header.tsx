@@ -8,7 +8,8 @@ import {
   DropdownMenuSeparator 
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { LogOut, Moon, Sun } from "lucide-react";
+import { LogOut, Moon, Sun, HelpCircle } from "lucide-react";
+import { Link } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 
 interface UserType {
@@ -21,7 +22,7 @@ interface UserType {
 
 export function Header() {
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const { user } = useAuth();
+  const { user } = useAuth() as { user: UserType | null | undefined };
 
   // Check for saved theme preference or default to 'light'
   useEffect(() => {
@@ -81,6 +82,18 @@ export function Header() {
 
         {/* User Actions */}
         <div className="flex items-center gap-3">
+          {/* Help Manual Button */}
+          <Link href="/help">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="flex items-center gap-2"
+            >
+              <HelpCircle className="h-4 w-4" />
+              <span className="hidden sm:inline">Manual</span>
+            </Button>
+          </Link>
+          
           {/* Dark Mode Toggle */}
           <Button
             variant="ghost"
