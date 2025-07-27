@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { PlusCircle, FolderOpen, Download, ChevronLeft, ChevronRight, Plus, ChevronDown, Trash2, FolderPlus, HelpCircle, LogOut } from "lucide-react";
+import { PlusCircle, FolderOpen, Download, ChevronLeft, ChevronRight, Plus, ChevronDown, Trash2, FolderPlus, HelpCircle, LogOut, Upload } from "lucide-react";
 import { formatDate } from "@/lib/date-utils";
 import type { ProjectWithTasks } from "@shared/schema";
 import TagManager from "./tag-manager";
@@ -20,6 +20,7 @@ interface SidebarProps {
   projects: ProjectWithTasks[];
   isCollapsed: boolean;
   onToggleCollapse: () => void;
+  onImportExcel: () => void;
 }
 
 export function Sidebar({ 
@@ -33,7 +34,8 @@ export function Sidebar({
   onDeleteProject,
   projects,
   isCollapsed,
-  onToggleCollapse
+  onToggleCollapse,
+  onImportExcel
 }: SidebarProps) {
   const calculateProgress = (project?: ProjectWithTasks) => {
     if (!project?.tasks || !project.tasks.length) return 0;
@@ -72,6 +74,9 @@ export function Sidebar({
           </Button>
           <Button variant="ghost" size="icon" onClick={onShowProjects} title="Browse Projects">
             <FolderOpen className="w-4 h-4" />
+          </Button>
+          <Button variant="ghost" size="icon" onClick={onImportExcel} title="Import from Excel">
+            <Upload className="w-4 h-4" />
           </Button>
           <div className="pt-4 border-t border-slate-200">
             <Button 
@@ -150,6 +155,10 @@ export function Sidebar({
                 <DropdownMenuItem onClick={onShowProjects}>
                   <FolderOpen className="w-4 h-4 mr-2" />
                   Browse Projects
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={onImportExcel}>
+                  <Upload className="w-4 h-4 mr-2" />
+                  Import from Excel
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={onExportExcel} disabled={!project}>
                   <Download className="w-4 h-4 mr-2" />

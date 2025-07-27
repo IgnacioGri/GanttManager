@@ -4,7 +4,7 @@ import multer from "multer";
 import { storage } from "./storage";
 import { insertProjectSchema, insertTaskSchema, insertTagSchema, updateTaskSchema } from "@shared/schema";
 import { setupAuth, isAuthenticated } from "./replitAuth";
-import { setupAuth, isAuthenticated } from "./replitAuth";
+import { parseExcelFile, generateExcelTemplate, convertExcelToTasks } from "./excel-utils";
 
 const upload = multer({ 
   storage: multer.memoryStorage(),
@@ -266,6 +266,98 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Excel import
+  app.post("/api/import-excel", isAuthenticated, upload.single("file"), async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      
+      if (!req.file) {
+        return res.status(400).json({ message: "No Excel file uploaded" });
+      }
+
+      const projectName = req.body.projectName;
+      if (!projectName) {
+        return res.status(400).json({ message: "Project name is required" });
+      }
+
+      // Parse Excel file
+      const excelData = parseExcelFile(req.file.buffer);
+      if (excelData.length === 0) {
+        return res.status(400).json({ message: "No valid tasks found in Excel file" });
+      }
+
+      // Create project
+      const project = await storage.createProject({
+        name: projectName,
+        startDate: excelData[0].startDate,
+        endDate: excelData[excelData.length - 1].endDate
+      }, userId);
+
+      // Convert Excel data to tasks
+      const { tasks, tagNames } = convertExcelToTasks(excelData, project.id);
+
+      // Create tags first
+      const createdTags = [];
+      for (const tagName of tagNames) {
+        const tag = await storage.createTag({
+          name: tagName,
+          color: getRandomTagColor(),
+          projectId: project.id
+        }, userId);
+        createdTags.push(tag);
+      }
+
+      // Map tag names to IDs and create tasks
+      const tagMap = new Map(createdTags.map(tag => [tag.name.toLowerCase(), tag.id]));
+      
+      for (let i = 0; i < tasks.length; i++) {
+        const task = tasks[i];
+        const excelRow = excelData[i];
+        
+        // Map tags from Excel to tag IDs
+        const taskTagNames = excelRow.tags 
+          ? excelRow.tags.split(',').map(tag => tag.trim().toLowerCase()).filter(tag => tag !== '')
+          : [];
+        const taskTagIds = taskTagNames.map(tagName => tagMap.get(tagName)).filter(id => id !== undefined);
+
+        await storage.createTask({
+          ...task,
+          projectId: project.id,
+          tagIds: taskTagIds
+        }, userId);
+      }
+
+      res.json({ 
+        message: "Project imported successfully", 
+        project: {
+          id: project.id,
+          name: project.name,
+          tasksCount: tasks.length,
+          tagsCount: createdTags.length
+        }
+      });
+    } catch (error) {
+      console.error("Error importing Excel:", error);
+      res.status(400).json({ 
+        message: error instanceof Error ? error.message : "Failed to import Excel file" 
+      });
+    }
+  });
+
+  // Excel template download
+  app.get("/api/excel-template", (req, res) => {
+    try {
+      const templateBuffer = generateExcelTemplate();
+      
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', 'attachment; filename="Plantilla_Gantt.xlsx"');
+      res.send(templateBuffer);
+    } catch (error) {
+      console.error("Error generating template:", error);
+      res.status(500).json({ message: "Failed to generate template" });
+    }
+  });
+
   // Tags
   app.get("/api/projects/:projectId/tags", isAuthenticated, async (req: any, res) => {
     try {
@@ -325,4 +417,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   const httpServer = createServer(app);
   return httpServer;
+}
+
+// Helper function to generate random tag colors
+function getRandomTagColor(): string {
+  const colors = [
+    '#ef4444', '#f97316', '#f59e0b', '#eab308', '#84cc16',
+    '#22c55e', '#10b981', '#14b8a6', '#06b6d4', '#0ea5e9',
+    '#3b82f6', '#6366f1', '#8b5cf6', '#a855f7', '#d946ef',
+    '#ec4899', '#f43f5e'
+  ];
+  return colors[Math.floor(Math.random() * colors.length)];
 }

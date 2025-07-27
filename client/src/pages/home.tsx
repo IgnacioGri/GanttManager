@@ -9,6 +9,7 @@ import { TaskModal } from "@/components/task-modal";
 import { CommentsModal } from "@/components/comments-modal";
 import { ProjectListModal } from "@/components/project-list-modal";
 import { ProjectModal } from "@/components/project-modal";
+import { ExcelImportModal } from "@/components/excel-import-modal";
 import { exportToExcel } from "@/lib/excel-export";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
@@ -25,6 +26,7 @@ export default function Home() {
   const [isCommentsModalOpen, setIsCommentsModalOpen] = useState(false);
   const [isProjectListOpen, setIsProjectListOpen] = useState(false);
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
+  const [isExcelImportOpen, setIsExcelImportOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [timelineScale, setTimelineScale] = useState<"Day" | "Week" | "Month">("Day");
 
@@ -51,6 +53,10 @@ export default function Home() {
 
   const handleNewProject = () => {
     setIsProjectModalOpen(true);
+  };
+
+  const handleImportExcel = () => {
+    setIsExcelImportOpen(true);
   };
 
   const handleDeleteProject = async (projectIdToDelete: number) => {
@@ -291,6 +297,7 @@ export default function Home() {
           projects={projects || []}
           isCollapsed={isSidebarCollapsed}
           onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+          onImportExcel={handleImportExcel}
         />
         
         <main className="flex-1 p-6 overflow-auto bg-slate-50">
@@ -332,6 +339,11 @@ export default function Home() {
       <ProjectModal
         isOpen={isProjectModalOpen}
         onClose={() => setIsProjectModalOpen(false)}
+      />
+
+      <ExcelImportModal
+        isOpen={isExcelImportOpen}
+        onClose={() => setIsExcelImportOpen(false)}
       />
     </div>
   );

@@ -127,7 +127,7 @@ export class DatabaseStorage implements IStorage {
     
     // Delete the project
     const result = await db.delete(projects).where(and(eq(projects.id, id), eq(projects.userId, userId)));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   // Tasks
@@ -160,10 +160,9 @@ export class DatabaseStorage implements IStorage {
       .insert(tasks)
       .values({
         ...insertTask,
-        progress: insertTask.progress ?? 0,
         dependencies: insertTask.dependencies ?? [],
         comments: insertTask.comments ?? "",
-        attachments: Array.isArray(insertTask.attachments) ? insertTask.attachments : [],
+        attachments: insertTask.attachments || [],
         skipWeekends: insertTask.skipWeekends ?? true,
         autoAdjustWeekends: insertTask.autoAdjustWeekends ?? true,
         tagIds: insertTask.tagIds ?? [],
@@ -204,7 +203,7 @@ export class DatabaseStorage implements IStorage {
     if (!task) return false;
     
     const result = await db.delete(tasks).where(eq(tasks.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   // Helper method to update tasks that are synced to this task
@@ -302,7 +301,7 @@ export class DatabaseStorage implements IStorage {
     if (!project) return false;
     
     const result = await db.delete(tags).where(eq(tags.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 }
 
