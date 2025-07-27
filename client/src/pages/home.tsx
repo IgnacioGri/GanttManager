@@ -59,6 +59,10 @@ export default function Home() {
     setIsExcelImportOpen(true);
   };
 
+  const handleProjectCreated = (projectId: number) => {
+    setLocation(`/project/${projectId}`);
+  };
+
   const handleDeleteProject = async (projectIdToDelete: number) => {
     try {
       const response = await fetch(`/api/projects/${projectIdToDelete}`, {
@@ -344,6 +348,7 @@ export default function Home() {
       <ExcelImportModal
         isOpen={isExcelImportOpen}
         onClose={() => setIsExcelImportOpen(false)}
+        onProjectCreated={handleProjectCreated}
       />
     </div>
   );

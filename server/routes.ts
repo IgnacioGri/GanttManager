@@ -275,10 +275,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "No Excel file uploaded" });
       }
 
-      const projectName = req.body.projectName;
-      if (!projectName) {
-        return res.status(400).json({ message: "Project name is required" });
-      }
+      // Use the Excel filename as project name (without extension)
+      const projectName = req.file.originalname.replace(/\.[^/.]+$/, "") || "Imported Project";
 
       // Parse Excel file
       const excelData = parseExcelFile(req.file.buffer);

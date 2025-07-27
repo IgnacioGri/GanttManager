@@ -11,9 +11,10 @@ import { apiRequest } from "@/lib/queryClient";
 interface ExcelImportModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onProjectCreated?: (projectId: number) => void;
 }
 
-export function ExcelImportModal({ isOpen, onClose }: ExcelImportModalProps) {
+export function ExcelImportModal({ isOpen, onClose, onProjectCreated }: ExcelImportModalProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [projectName, setProjectName] = useState("");
   const [isUploading, setIsUploading] = useState(false);
@@ -21,10 +22,9 @@ export function ExcelImportModal({ isOpen, onClose }: ExcelImportModalProps) {
   const queryClient = useQueryClient();
 
   const importMutation = useMutation({
-    mutationFn: async ({ file, name }: { file: File; name: string }) => {
+    mutationFn: async (file: File) => {
       const formData = new FormData();
       formData.append("file", file);
-      formData.append("projectName", name);
       
       const response = await fetch("/api/import-excel", {
         method: "POST",
@@ -37,13 +37,18 @@ export function ExcelImportModal({ isOpen, onClose }: ExcelImportModalProps) {
       
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast({
         title: "Importación exitosa",
         description: "El proyecto se ha creado desde el archivo Excel.",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
       handleClose();
+      
+      // Redirect to the new project
+      if (onProjectCreated && data.project?.id) {
+        onProjectCreated(data.project.id);
+      }
     },
     onError: (error: Error) => {
       toast({
@@ -58,23 +63,24 @@ export function ExcelImportModal({ isOpen, onClose }: ExcelImportModalProps) {
     const file = event.target.files?.[0];
     if (file) {
       setSelectedFile(file);
-      // Auto-generate project name from filename
+      // Auto-generate project name from filename (not shown to user)
       const nameWithoutExt = file.name.replace(/\.[^/.]+$/, "");
       setProjectName(nameWithoutExt);
     }
   };
 
   const handleImport = () => {
-    if (!selectedFile || !projectName.trim()) {
+    if (!selectedFile) {
       toast({
-        title: "Datos incompletos",
-        description: "Selecciona un archivo Excel y proporciona un nombre para el proyecto.",
+        title: "Archivo requerido",
+        description: "Selecciona un archivo Excel para importar.",
         variant: "destructive",
       });
       return;
     }
 
-    importMutation.mutate({ file: selectedFile, name: projectName.trim() });
+    // The server will use the filename as project name
+    importMutation.mutate(selectedFile);
   };
 
   const handleClose = () => {
@@ -123,15 +129,11 @@ export function ExcelImportModal({ isOpen, onClose }: ExcelImportModalProps) {
             </Button>
           </div>
 
-          {/* Project Name */}
-          <div className="space-y-2">
-            <Label htmlFor="projectName">Nombre del Proyecto</Label>
-            <Input
-              id="projectName"
-              value={projectName}
-              onChange={(e) => setProjectName(e.target.value)}
-              placeholder="Ej: Mi Proyecto Importado"
-            />
+          {/* Info about project name */}
+          <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
+            <p className="text-sm text-blue-700 dark:text-blue-300">
+              <strong>Nombre del proyecto:</strong> Se usará automáticamente el nombre del archivo Excel como título del proyecto.
+            </p>
           </div>
 
           {/* File Upload */}
