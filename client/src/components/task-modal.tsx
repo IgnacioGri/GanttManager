@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,6 +28,12 @@ interface TaskModalProps {
 export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskModalProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  
+  // Query for tags to ensure we have the latest data
+  const { data: projectTags } = useQuery<Tag[]>({
+    queryKey: ["/api/projects", projectId || project?.id, "tags"],
+    enabled: isOpen && !!(projectId || project?.id),
+  });
   
   const [name, setName] = useState("");
   const [startDate, setStartDate] = useState<Date | undefined>();
@@ -928,13 +934,13 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
           </div>
 
           {/* Tag Selection */}
-          {project && (
+          {(project || projectId) && (
             <div>
               <Label>Tags</Label>
-              {project.tags && project.tags.length > 0 ? (
+              {projectTags && projectTags.length > 0 ? (
                 <>
                   <div className="flex flex-wrap gap-2 mt-2">
-                    {project.tags.map((tag) => (
+                    {projectTags.map((tag) => (
                       <button
                         key={tag.id}
                         type="button"
