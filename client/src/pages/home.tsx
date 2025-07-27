@@ -3,6 +3,7 @@ import { useParams, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Plus, FolderOpen, Download, Settings } from "lucide-react";
+import { Header } from "@/components/header";
 import { Sidebar } from "@/components/sidebar";
 import { GanttChart } from "@/components/gantt-chart";
 import { TaskModal } from "@/components/task-modal";
@@ -209,84 +210,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-slate-50 font-inter">
       {/* Header */}
-      <header className="bg-white border-b border-slate-200 px-6 py-6 shadow-sm">
-        <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold text-slate-900">Gantt Manager</h1>
-          {project && (
-            <div className="text-right">
-              {isEditingProjectName ? (
-                <div className="p-2">
-                  <input
-                    type="text"
-                    value={projectNameInput}
-                    onChange={(e) => setProjectNameInput(e.target.value)}
-                    onBlur={async () => {
-                      if (projectNameInput.trim() && projectNameInput !== project.name) {
-                        try {
-                          const response = await fetch(`/api/projects/${project.id}`, {
-                            method: 'PATCH',
-                            headers: {
-                              'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify({
-                              name: projectNameInput.trim(),
-                              startDate: project.startDate,
-                              endDate: project.endDate,
-                            }),
-                          });
-                          
-                          if (!response.ok) throw new Error('Failed to update project name');
-                          
-                          await queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
-                          await queryClient.invalidateQueries({ queryKey: ["/api/projects", project.id] });
-                          
-                          toast({
-                            title: "Project Updated",
-                            description: "Project name has been updated successfully",
-                          });
-                        } catch (error) {
-                          toast({
-                            title: "Update Failed",
-                            description: "Failed to update project name",
-                            variant: "destructive"
-                          });
-                          setProjectNameInput(project.name); // Revert to original name
-                        }
-                      }
-                      setIsEditingProjectName(false);
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        e.currentTarget.blur();
-                      } else if (e.key === 'Escape') {
-                        setProjectNameInput(project.name);
-                        setIsEditingProjectName(false);
-                      }
-                    }}
-                    className="text-2xl font-bold text-slate-900 bg-white border border-blue-500 rounded px-2 py-1 text-right"
-                    autoFocus
-                  />
-                  <p className="text-sm text-slate-500 uppercase tracking-wide">PROJECT</p>
-                </div>
-              ) : (
-                <button 
-                  onClick={() => {
-                    setProjectNameInput(project.name);
-                    setIsEditingProjectName(true);
-                  }}
-                  className="group text-right hover:bg-slate-50 p-2 rounded-lg transition-colors"
-                  title="Click to edit project name"
-                >
-                  <h2 className="text-2xl font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
-                    {project.name}
-                  </h2>
-                  <p className="text-sm text-slate-500 uppercase tracking-wide">PROJECT</p>
-                </button>
-              )}
-            </div>
-          )}
-        </div>
-      </header>
+      <Header />
 
       <div className="flex h-[calc(100vh-80px)]">
         <Sidebar 

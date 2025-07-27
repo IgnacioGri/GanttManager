@@ -200,17 +200,7 @@ export function Sidebar({
             </Button>
           </div>
 
-          {/* Logout section */}
-          <div className="bg-white p-4 rounded-lg shadow-sm border border-slate-200">
-            <Button 
-              variant="outline" 
-              className="w-full justify-start text-red-600 border-red-200 hover:bg-red-50"
-              onClick={() => window.location.href = '/api/logout'}
-            >
-              <LogOut className="w-4 h-4 mr-2" />
-              Cerrar Sesión
-            </Button>
-          </div>
+
 
         </div>
       )}
