@@ -200,23 +200,84 @@
   background-color: hsl(var(--background)) !important;
 }
 
-/* Override any inline styles - most aggressive approach */
-.dark .gantt-container *,
-.dark .gantt-container *[style],
-.dark .gantt-container [style*="background"],
-.dark .gantt-container [style*="white"],
-.dark .gantt-container [style*="#fff"],
-.dark .gantt-container [style*="#ffffff"] {
-  background-color: hsl(240, 10%, 3.9%) !important;
-  background: hsl(240, 10%, 3.9%) !important;
+/* Frappe-Gantt Dark Mode Overrides - SVG Based */
+.dark .gantt-container {
+  background-color: hsl(var(--background)) !important;
 }
 
-/* Target the Gantt library's specific elements */
-.dark .gantt-container .gantt *,
-.dark .gantt-container [class*="gantt"] *,
-.dark .gantt-container div[style*="background"] {
-  background-color: hsl(240, 10%, 3.9%) !important;
-  background: hsl(240, 10%, 3.9%) !important;
+.dark .gantt .grid-header {
+  fill: hsl(var(--background)) !important;
+  stroke: hsl(var(--border)) !important;
+}
+
+.dark .gantt .grid-row {
+  fill: hsl(var(--background)) !important;
+}
+
+.dark .gantt .grid-row:nth-child(even) {
+  fill: hsl(var(--muted) / 0.1) !important;
+}
+
+.dark .gantt .row-line {
+  stroke: hsl(var(--border)) !important;
+}
+
+.dark .gantt .tick {
+  stroke: hsl(var(--border)) !important;
+}
+
+.dark .gantt .today-highlight {
+  fill: hsl(var(--accent)) !important;
+  opacity: 0.2 !important;
+}
+
+.dark .gantt .arrow {
+  stroke: hsl(var(--muted-foreground)) !important;
+}
+
+.dark .gantt .bar {
+  stroke: none !important;
+}
+
+.dark .gantt .bar-progress {
+  /* Keep the original task colors for progress */
+}
+
+.dark .gantt .bar-invalid {
+  fill: transparent !important;
+  stroke: hsl(var(--muted-foreground)) !important;
+}
+
+.dark .gantt .bar-invalid ~ .bar-label,
+.dark .gantt .bar-label.big {
+  fill: hsl(var(--foreground)) !important;
+}
+
+.dark .gantt .bar-wrapper:hover .bar,
+.dark .gantt .bar-wrapper.active .bar {
+  filter: brightness(1.2) !important;
+}
+
+.dark .gantt .upper-text {
+  fill: hsl(var(--muted-foreground)) !important;
+}
+
+.dark .gantt .lower-text {
+  fill: hsl(var(--foreground)) !important;
+}
+
+.dark .gantt-container .popup-wrapper {
+  background-color: hsl(var(--popover)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+}
+
+.dark .gantt-container .popup-wrapper .title {
+  border-color: hsl(var(--primary)) !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+.dark .gantt-container .popup-wrapper .pointer {
+  border-top-color: hsl(var(--popover)) !important;
 }
 
 .gantt-container .gantt-task {

@@ -125,67 +125,19 @@ export function GanttChart({ project, timelineScale, onEditTask, onAddComment, o
     }, 50);
   };
 
-  // Function to apply dark mode to Gantt chart
+  // Function to apply dark mode to Gantt chart - simplified for CSS-based approach
   const applyDarkModeToGantt = () => {
     if (!ganttRef.current) return;
     
-    // Check if we're in dark mode
+    // The CSS handles most of the styling, but we ensure the container has the right background
     const isDarkMode = document.documentElement.classList.contains('dark');
-    const bgColor = isDarkMode ? '#0f0f0f' : '#ffffff'; // Use hex for more reliable application
-    
-    // Function to force background on an element with maximum priority
-    const forceBackground = (element: HTMLElement | SVGElement) => {
-      if (element instanceof HTMLElement) {
-        // Remove all existing background properties
-        element.style.removeProperty('background');
-        element.style.removeProperty('background-color');
-        element.style.removeProperty('background-image');
-        
-        // Apply new background with highest priority
-        element.style.cssText += `background-color: ${bgColor} !important; background: ${bgColor} !important;`;
-        element.setAttribute('style', element.getAttribute('style') + `background-color: ${bgColor} !important; background: ${bgColor} !important;`);
+    if (isDarkMode) {
+      // Just ensure the main container has the dark background
+      const ganttElement = ganttRef.current.querySelector('.gantt') as HTMLElement;
+      if (ganttElement) {
+        ganttElement.style.setProperty('background-color', 'hsl(var(--background))', 'important');
       }
-      
-      if (element instanceof SVGElement) {
-        element.style.cssText += `background-color: ${bgColor} !important;`;
-        element.setAttribute('fill', bgColor);
-      }
-    };
-    
-    // Apply to the container itself first
-    forceBackground(ganttRef.current);
-    
-    // Get ALL descendant elements and force background
-    const allElements = ganttRef.current.querySelectorAll('*');
-    console.log(`Applying dark mode to ${allElements.length} elements`);
-    
-    allElements.forEach((element, index) => {
-      forceBackground(element);
-      
-      // Special handling for elements with inline styles
-      if (element instanceof HTMLElement && element.style.cssText.includes('background')) {
-        const currentStyle = element.style.cssText;
-        element.style.cssText = currentStyle.replace(/background[^;]*;?/g, '') + `background-color: ${bgColor} !important;`;
-      }
-    });
-    
-    // Additional targeting using more specific selectors
-    const additionalSelectors = [
-      'div', 'svg', 'rect', 'g', 
-      '[class*="gantt"]', '[id*="gantt"]',
-      '[style*="background"]', '[style*="fff"]', '[style*="white"]'
-    ];
-    
-    additionalSelectors.forEach(selector => {
-      try {
-        const elements = ganttRef.current?.querySelectorAll(selector);
-        elements?.forEach(element => forceBackground(element));
-      } catch (e) {
-        // Ignore selector errors
-      }
-    });
-    
-    console.log('Dark mode application completed');
+    }
   };
 
   // Function to create/recreate the Gantt chart
@@ -238,35 +190,11 @@ export function GanttChart({ project, timelineScale, onEditTask, onAddComment, o
       ganttInstance.current = new window.Gantt(ganttRef.current, tasks, ganttOptions);
       console.log('✅ Gantt instance created successfully');
       
-      // Immediately apply dark mode - no delays
-      applyDarkModeToGantt();
-      applyTaskColors();
-      
-      // Set up continuous monitoring for background changes
-      const observer = new MutationObserver(() => {
+      // Apply task colors and basic dark mode setup
+      setTimeout(() => {
+        applyTaskColors();
         applyDarkModeToGantt();
-      });
-      
-      // Observe all changes in the Gantt container
-      if (ganttRef.current) {
-        observer.observe(ganttRef.current, {
-          childList: true,
-          subtree: true,
-          attributes: true,
-          attributeFilter: ['style', 'class']
-        });
-      }
-      
-      // Store observer to clean up later
-      (ganttInstance.current as any).backgroundObserver = observer;
-      
-      // Multiple aggressive attempts
-      const intervals = [50, 100, 200, 300, 500, 1000];
-      intervals.forEach(interval => {
-        setTimeout(() => {
-          applyDarkModeToGantt();
-        }, interval);
-      });
+      }, 100);
     } catch (error) {
       console.error('❌ Error creating Gantt chart:', error);
     }
@@ -277,46 +205,20 @@ export function GanttChart({ project, timelineScale, onEditTask, onAddComment, o
     createGanttChart();
   }, [createGanttChart]);
 
-  // Apply task colors and dark mode after chart creation
+  // Apply task colors after chart creation
   useEffect(() => {
     if (ganttInstance.current) {
       setTimeout(() => {
         applyTaskColors();
-        applyDarkModeToGantt();
       }, 100);
-      
-      // Additional attempts for dark mode
-      setTimeout(() => {
-        applyDarkModeToGantt();
-      }, 300);
     }
   }, [project?.tasks]);
-
-  // Monitor theme changes and reapply dark mode
-  useEffect(() => {
-    const observer = new MutationObserver(() => {
-      if (ganttInstance.current) {
-        applyDarkModeToGantt();
-      }
-    });
-    
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ['class']
-    });
-    
-    return () => observer.disconnect();
-  }, []);
 
   // Cleanup effect
   useEffect(() => {
     return () => {
       // Cleanup on unmount
       if (ganttInstance.current) {
-        // Clean up the background observer
-        if ((ganttInstance.current as any).backgroundObserver) {
-          (ganttInstance.current as any).backgroundObserver.disconnect();
-        }
         ganttInstance.current = null;
       }
     };

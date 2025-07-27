@@ -1,0 +1,131 @@
+¡Genial, gracias por confirmar que usás frappe-gantt! Eso me ayuda mucho a diagnosticar el problema. Frappe-gantt es una librería basada en SVG para renderizar los charts, y por eso no hereda automáticamente los estilos de Tailwind CSS para dark mode (como las variantes `dark:`). El dark mode funciona en el resto del sitio porque esos elementos usan clases de Tailwind que responden al `dark` class en el `<html>` o root element. Pero para frappe-gantt, necesitás overrides CSS específicos que targeteen sus clases internas (ej: `.gantt .bar`, `.gantt .grid-row`, etc.) cuando el modo oscuro está activo.
+
+Basado en investigaciones (incluyendo issues en el repo de frappe-gantt), el problema común es que la librería tiene sus propios estilos default (en frappe-gantt.css), que no cambian con el theme. La solución es agregar CSS custom en tu archivo de estilos global (probablemente el que tiene `@tailwind base; @tailwind components;` etc., como globals.css o index.css en /client).
+
+### Pasos para Fixearlo
+1. **Asegurate de que Dark Mode esté Configurado en Tailwind**:
+   - En `tailwind.config.ts`, debería tener algo como:
+     ```
+     module.exports = {
+       darkMode: 'class',  // O 'media' si usás prefers-color-scheme, pero 'class' es mejor para toggle manual.
+       // ... resto de config
+     }
+     ```
+     Esto aplica estilos cuando hay un `.dark` en el ancestor (ej: `<html class="dark">`).
+
+2. **Agregá CSS Custom para Frappe-Gantt en Dark Mode**:
+   - En tu archivo CSS principal (donde importás Tailwind), agregá estos overrides al final (después de las directivas de Tailwind). Están basados en un issue oficial de frappe-gantt donde alguien compartió un stylesheet para dark mode. Adaptalo a tus colores si querés (usando variables de Tailwind para consistencia).
+
+     ```
+     /* Tus directivas de Tailwind aquí arriba */
+
+     /* Overrides para frappe-gantt en dark mode */
+     .dark .gantt-container {
+       background-color: #1f2937; /* Ej: gray-800 en Tailwind */
+     }
+
+     .dark .gantt .grid-header {
+       fill: #1f2937; /* Fondo header */
+       stroke: #4b5563; /* Bordes, gray-600 */
+     }
+
+     .dark .gantt .grid-row {
+       fill: #1f2937; /* Filas pares/impares */
+     }
+
+     .dark .gantt .grid-row:nth-child(even) {
+       fill: #374151; /* gray-700 para alternancia */
+     }
+
+     .dark .gantt .row-line {
+       stroke: #374151; /* Líneas horizontales */
+     }
+
+     .dark .gantt .tick {
+       stroke: #4b5563; /* Ticks verticales */
+     }
+
+     .dark .gantt .today-highlight {
+       fill: #6b7280; /* Highlight hoy, gray-500 con opacidad */
+       opacity: 0.2;
+     }
+
+     .dark .gantt .arrow {
+       stroke: #d1d5db; /* Flechas dependencias, gray-300 */
+     }
+
+     .dark .gantt .bar {
+       fill: #4b5563; /* Barras tasks default */
+       stroke: none;
+     }
+
+     .dark .gantt .bar-progress {
+       fill: #6366f1; /* Progreso, indigo-500 */
+     }
+
+     .dark .gantt .bar-invalid {
+       fill: transparent;
+       stroke: #9ca3af; /* gray-400 */
+     }
+
+     .dark .gantt .bar-invalid ~ .bar-label,
+     .dark .gantt .bar-label.big {
+       fill: #e5e7eb; /* Textos labels, gray-200 */
+     }
+
+     .dark .gantt .bar-wrapper:hover .bar,
+     .dark .gantt .bar-wrapper.active .bar {
+       fill: #6b7280; /* Hover/active, gray-500 */
+     }
+
+     .dark .gantt .bar-wrapper:hover .bar-progress,
+     .dark .gantt .bar-wrapper.active .bar-progress {
+       fill: #818cf8; /* Hover progreso, indigo-400 */
+     }
+
+     .dark .gantt .upper-text {
+       fill: #9ca3af; /* Textos upper header, gray-400 */
+     }
+
+     .dark .gantt .lower-text {
+       fill: #f3f4f6; /* Textos lower, gray-100 */
+     }
+
+     .dark .gantt-container .popup-wrapper {
+       background-color: #374151; /* Popup fondo, gray-700 */
+     }
+
+     .dark .gantt-container .popup-wrapper .title {
+       border-color: #6366f1; /* Borde título popup */
+     }
+
+     .dark .gantt-container .popup-wrapper .pointer {
+       border-top-color: #374151; /* Pointer popup */
+     }
+     ```
+
+     - **Por qué esto?** Prefixeá con `.dark` para que solo aplique en modo oscuro. Usá colores de Tailwind (ej: #1f2937 es bg-gray-800) para que matchee tu theme. Podés extender tu Tailwind config con variables custom si querés reutilizar colores.
+
+3. **Verificá la Integración en tu Componente Gantt**:
+   - En el archivo donde inicializás frappe-gantt (probablemente un .tsx en /client/components, como GanttChart.tsx), asegurate de que el container tenga clases que hereden el dark mode. Ej:
+     ```
+     <div className="gantt-container bg-white dark:bg-gray-800"> {/* Asegura fondo dark */}
+       {/* Aquí va el ref donde montás el Gantt */}
+     </div>
+     ```
+     - Si usás `new Gantt('#gantt-target', tasks, options);`, el elemento target debería estar dentro de un div con clases Tailwind.
+
+4. **Toggle y Persistencia**:
+   - Si tu toggle de dark mode agrega/remueve 'dark' de `<html>`, testeá recargando la página. Usá localStorage para persistir la preferencia, como en ejemplos estándar de Tailwind (ej: if (localStorage.theme === 'dark') document.documentElement.classList.add('dark');).
+
+### Pruebas y Posibles Issues
+- **Recarga la App**: Después de agregar el CSS, rebuild con Vite (npm run dev) y toggleá dark mode. El Gantt debería cambiar colores.
+- **Conflictos**: Si frappe-gantt.css tiene !important o specificity alta, agregá !important a tus overrides (ej: fill: #1f2937 !important;).
+- **Librería Version**: Asegurate de que frappe-gantt esté actualizada (check package.json). La versión latest soporta customización bien.
+- **SVG Inline**: Como es SVG, estilos CSS externos funcionan, pero si el SVG es shadow DOM (raro en frappe), podría necesitar JS para injectar styles.
+
+Si esto no lo resuelve, pegame el contenido de:
+- El componente que renderiza el Gantt (ej: GanttChart.tsx, para ver imports y setup).
+- Tu archivo CSS global (para confirmar dónde agregar los overrides).
+
+¡Probá esto y decime si funciona! Si hay errores específicos (ej: console logs), compartilos para debuggear más.
