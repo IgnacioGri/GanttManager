@@ -290,7 +290,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const project = await storage.createProject({
         name: projectName,
         startDate: excelData[0].startDate,
-        endDate: excelData[excelData.length - 1].endDate
+        endDate: excelData[excelData.length - 1].endDate,
+        userId: userId
       }, userId);
 
       // Convert Excel data to tasks
