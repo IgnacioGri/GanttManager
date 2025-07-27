@@ -9,7 +9,7 @@
 6. [Progreso y Seguimiento](#progreso-y-seguimiento)
 7. [Comentarios y Archivos](#comentarios-y-archivos)
 8. [Configuraciones Avanzadas](#configuraciones-avanzadas)
-9. [Exportación de Datos](#exportación-de-datos)
+9. [Exportación e Importación de Datos](#exportación-e-importación-de-datos)
 10. [Consejos y Trucos](#consejos-y-trucos)
 
 ## Introducción
@@ -323,7 +323,7 @@ Cambia la vista temporal usando los controles superiores:
 - Modo contraído muestra solo íconos principales
 - Libera espacio para el Gantt sin perder funcionalidad
 
-## Exportación de Datos
+## Exportación e Importación de Datos
 
 ### Exportar a Excel
 
@@ -342,6 +342,78 @@ Cambia la vista temporal usando los controles superiores:
 - Presentaciones de estado
 - Backup de información
 - Análisis externo de datos
+
+### Importar desde Excel
+
+Gantt Manager permite crear proyectos completos importando datos desde archivos de Excel (.xlsx).
+
+#### Descargar Plantilla
+
+1. En el menú "Project Actions"
+2. Selecciona "Download Excel Template"
+3. Se descargará un archivo `Plantilla_Gantt.xlsx` con:
+   - Estructura de columnas predefinida
+   - Ejemplos de datos
+   - Formato correcto para fechas y dependencias
+
+#### Estructura de la Plantilla
+
+**Columnas Obligatorias** (mínimo requerido):
+- **Nombre**: Nombre de la tarea
+- **Fecha Inicio**: Formato DD/MM/YYYY
+- **Fecha Fin**: Formato DD/MM/YYYY
+
+**Columnas Opcionales**:
+- **Progreso**: Porcentaje de 0 a 100
+- **Dependencias**: Nombres de tareas separados por comas
+- **Tags**: Etiquetas separadas por comas
+- **Comentarios**: Notas adicionales sobre la tarea
+
+#### Proceso de Importación
+
+1. **Preparar el archivo Excel**:
+   - Usa la plantilla descargada como base
+   - Completa las columnas obligatorias para cada tarea
+   - Asegúrate de usar el formato de fecha DD/MM/YYYY
+   - Para dependencias, usa los nombres exactos de otras tareas
+
+2. **Importar el archivo**:
+   - En el menú "Project Actions"
+   - Selecciona "Import Excel"
+   - Selecciona tu archivo .xlsx preparado
+   - El sistema creará automáticamente:
+     - Un nuevo proyecto con el nombre del archivo
+     - Todas las tareas con sus fechas y configuraciones
+     - Tags con colores automáticos
+     - Dependencias entre tareas
+
+3. **Verificación post-importación**:
+   - Revisa que todas las tareas se hayan importado correctamente
+   - Verifica las fechas y dependencias
+   - Ajusta manualmente cualquier configuración específica
+
+#### Consejos para Importación Exitosa
+
+**Formato de Fechas**:
+- Usa siempre DD/MM/YYYY (ej: 15/03/2024)
+- Evita formatos de fecha en inglés
+- Las fechas inválidas causarán errores de importación
+
+**Dependencias**:
+- Los nombres de tareas deben coincidir exactamente
+- Usa comas para separar múltiples dependencias
+- Ejemplo: "Diseño UI, Wireframes, Prototipo"
+
+**Tags**:
+- Se crearán automáticamente si no existen
+- Usa nombres descriptivos y consistentes
+- Se asignarán colores aleatorios que puedes cambiar después
+
+**Limitaciones**:
+- Máximo tamaño de archivo: 10MB
+- Solo archivos .xlsx (Excel moderno)
+- No se importan archivos adjuntos
+- Los comentarios se importan como texto simple
 
 ## Consejos y Trucos
 
@@ -397,6 +469,23 @@ Cambia la vista temporal usando los controles superiores:
 **Navegación rápida**:
 - Usa filtros para encontrar tareas específicas
 - Cambia escalas según el nivel de detalle necesario
+
+### 📊 Importación y Migración de Datos
+
+**Preparación de archivos Excel**:
+- Siempre descarga la plantilla oficial antes de crear tu propio archivo
+- Usa nombres de tarea únicos para evitar conflictos en dependencias
+- Verifica que las fechas estén en formato DD/MM/YYYY
+
+**Migración desde otras herramientas**:
+- Exporta datos desde MS Project, Asana o Trello a Excel
+- Adapta las columnas al formato de la plantilla de Gantt Manager
+- Importa por fases si tienes proyectos muy grandes (>100 tareas)
+
+**Control de calidad post-importación**:
+- Revisa las dependencias automáticas generadas
+- Verifica que los tags se hayan creado correctamente
+- Ajusta colores de tags según tu código organizacional
 
 ---
 

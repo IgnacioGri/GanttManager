@@ -59,6 +59,8 @@ Default timeline scale: Days (changed from Week to provide more detailed daily v
 - MANUAL-USUARIO.md file with complete Spanish documentation
 - Help button integrated in both collapsed and expanded sidebar states
 - Manual covers: projects, tasks, tags, dependencies, synchronization, progress tracking
+- Added Excel import/export documentation with detailed usage instructions
+- Includes template download process, file structure, and troubleshooting tips
 
 ### Weekend Control Feature - REMOVED (January 26, 2025)
 - Feature completely removed after multiple failed implementation attempts

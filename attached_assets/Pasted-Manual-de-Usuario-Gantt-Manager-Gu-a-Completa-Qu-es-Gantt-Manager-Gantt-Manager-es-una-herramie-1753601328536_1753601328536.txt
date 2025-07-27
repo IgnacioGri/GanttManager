@@ -1,0 +1,111 @@
+Manual de Usuario
+Gantt Manager - Guía Completa
+¿Qué es Gantt Manager?
+Gantt Manager es una herramienta de gestión de proyectos que te permite crear, visualizar y gestionar diagramas de Gantt de manera intuitiva. Perfecta para planificar proyectos, establecer dependencias entre tareas y realizar seguimiento del progreso.
+Gestión de Proyectos
+Crear un Nuevo Proyecto
+
+Desde la barra lateral, haz clic en "Nuevo Proyecto" para crear un proyecto desde cero.
+
+• Nombre del proyecto (obligatorio)
+• Fecha de inicio (obligatorio)
+• Fecha de fin (opcional para nuevos proyectos)
+Editar Nombre del Proyecto
+
+Haz clic en el nombre del proyecto en la esquina superior derecha para editarlo directamente.
+Navegación entre Proyectos
+
+Usa el botón "Ver Proyectos" en la barra lateral para cambiar entre diferentes proyectos.
+Gestión de Tareas
+Crear una Nueva Tarea
+
+Haz clic en "Agregar Nueva Tarea" en la barra lateral para abrir el modal de creación.
+
+Modos de Configuración de Fechas
+
+Manual
+Selecciona las fechas de inicio y fin manualmente usando el calendario o escribiendo en formato DD/MM/AA.
+Dependiente
+La tarea comenzará automáticamente después de que terminen las tareas seleccionadas como dependencias.
+Sincronizada
+La tarea se sincroniza con otra tarea existente (mismo inicio, mismo fin, o ambos).
+Editar Tareas
+
+Haz clic en el nombre de la tarea en la lista lateral o usa el menú de tres puntos para acceder a las opciones de edición.
+Sistema de Tags
+Crear Tags
+
+En la barra lateral, encuentra la sección "Gestión de Tags" para crear nuevos tags.
+
+• Nombre del tag
+• Color personalizado
+• Los tags son específicos de cada proyecto
+Asignar Tags a Tareas
+
+En el modal de creación/edición de tareas, selecciona los tags haciendo clic en ellos. Los tags seleccionados se muestran con el color de fondo correspondiente.
+Visualización de Tags
+
+Los tags aparecen como pequeños círculos de colores debajo del nombre de cada tarea. Pasa el mouse sobre ellos para ver el nombre del tag.
+Dependencias y Sincronización
+Dependencias de Tareas
+
+Establece que una tarea debe esperar a que otras terminen antes de comenzar.
+
+• Selecciona una o múltiples tareas como dependencias
+• Configura días adicionales después de que terminen las dependencias
+• Las fechas se calculan automáticamente
+Sincronización de Tareas
+
+Inicio Conjunto:
+Ambas tareas comienzan el mismo día
+Fin Conjunto:
+Ambas tareas terminan el mismo día
+Inicio y Fin Conjuntos:
+Tareas idénticas en duración y fechas
+Progreso y Seguimiento
+Actualizar Progreso
+
+Usa el deslizador de progreso en el modal de edición para actualizar el porcentaje completado (0-100%).
+Indicadores Visuales
+
+• Las barras del Gantt se vuelven más transparentes a medida que aumenta el progreso
+• Los colores indican diferentes fases: Planificación (púrpura), Diseño (cian), Desarrollo (azul), etc.
+• Puntos pequeños indican comentarios (azul) y archivos adjuntos (ámbar)
+Filtros de Tareas
+
+Usa los filtros en la parte superior del Gantt para mostrar solo tareas pendientes, en progreso o completadas.
+Comentarios y Archivos
+Agregar Comentarios
+
+Haz clic en el icono de comentario en el menú de tres puntos de cualquier tarea para agregar notas y observaciones.
+Subir Archivos
+
+En el modal de edición de tareas, arrastra archivos a la zona de carga o haz clic para seleccionarlos.
+
+• Formatos soportados: PDF, DOCX, DOC
+• Tamaño máximo: 10MB por archivo
+• Los archivos se almacenan directamente en la tarea
+Configuraciones Avanzadas
+Opciones de Fechas
+
+• Saltar fines de semana: La duración se calcula solo en días laborables
+• Ajuste automático: Las tareas que caen en fin de semana se mueven al lunes
+Escalas de Tiempo
+
+Cambia entre vista diaria, semanal o mensual usando los controles en la parte superior del Gantt.
+Modo Pantalla Completa
+
+Usa el botón de pantalla completa para maximizar la vista del Gantt y ocultar la barra lateral.
+Exportación de Datos
+Exportar a Excel
+
+Usa el botón "Exportar Excel" en la barra lateral para descargar un archivo con todos los datos del proyecto.
+
+• Incluye todas las tareas con fechas, progreso y dependencias
+• Formato compatible con Microsoft Excel y Google Sheets
+• Perfecto para reportes y presentaciones
+Consejos y Trucos
+Tip: Puedes arrastrar las barras del Gantt para cambiar fechas directamente en el gráfico.
+Planificación: Comienza siempre con las tareas que no dependen de otras, luego agrega las dependencias.
+Tags: Usa tags para categorizar tareas por equipo, prioridad o fase del proyecto.
+Sincronización: Las tareas sincronizadas son útiles para actividades paralelas que deben ocurrir al mismo tiempo.
