@@ -11,12 +11,25 @@ Default timeline scale: Days (changed from Week to provide more detailed daily v
 
 ## Recent Changes
 
+### Tags System Implementation - COMPLETED (January 27, 2025)
+- Full tags system implemented with complete CRUD operations
+- Backend schema and storage layer for tags with project association
+- TagManager component for creating and managing tags with custom colors
+- Task modal integration for selecting multiple tags per task
+- Space-efficient visualization using colored circles with tooltips
+- Tags displayed in task list with hover information
+
+### Documentation and User Manual - COMPLETED (January 27, 2025)
+- Comprehensive user manual created at `/help` route accessible from sidebar
+- Detailed documentation covering all features and workflows
+- MANUAL-USUARIO.md file with complete Spanish documentation
+- Help button integrated in both collapsed and expanded sidebar states
+- Manual covers: projects, tasks, tags, dependencies, synchronization, progress tracking
+
 ### Weekend Control Feature - REMOVED (January 26, 2025)
 - Feature completely removed after multiple failed implementation attempts
 - Issue: Frappe Gantt library does not support weekend hiding functionality
-- Attempted solutions: Native API, DOM manipulation, CSS injection - all unsuccessful
 - User decision: Remove feature entirely to focus on core Gantt functionality
-- All related code, props, state management, and UI elements removed
 
 ## System Architecture
 

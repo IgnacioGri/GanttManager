@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { PlusCircle, FolderOpen, Download, ChevronLeft, ChevronRight, Plus, ChevronDown, Trash2, FolderPlus } from "lucide-react";
+import { PlusCircle, FolderOpen, Download, ChevronLeft, ChevronRight, Plus, ChevronDown, Trash2, FolderPlus, HelpCircle } from "lucide-react";
 import { formatDate } from "@/lib/date-utils";
 import type { ProjectWithTasks } from "@shared/schema";
 import TagManager from "./tag-manager";
@@ -76,6 +76,11 @@ export function Sidebar({
           <Button variant="ghost" size="icon" onClick={onNewTask} disabled={!project} title="Add Task">
             <Plus className="w-4 h-4" />
           </Button>
+          <Button variant="ghost" size="icon" asChild title="Help">
+            <Link href="/help">
+              <HelpCircle className="w-4 h-4" />
+            </Link>
+          </Button>
         </div>
       ) : (
         <div>
@@ -139,6 +144,12 @@ export function Sidebar({
                 <DropdownMenuItem onClick={onExportExcel} disabled={!project}>
                   <Download className="w-4 h-4 mr-2" />
                   Export Excel
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/help">
+                    <HelpCircle className="w-4 h-4 mr-2" />
+                    Manual de Usuario
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem 
                   onClick={() => {
