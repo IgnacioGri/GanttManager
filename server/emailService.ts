@@ -24,17 +24,25 @@ export async function sendEmail(params: EmailParams): Promise<boolean> {
   }
 
   try {
-    await mailService.send({
+    const msg = {
       to: params.to,
-      from: params.from,
+      from: {
+        email: 'grimoldiignacio@gmail.com',
+        name: 'Gantt Manager'
+      },
       subject: params.subject,
       text: params.text,
       html: params.html,
-    });
-    console.log("Email sent successfully to:", params.to);
+    };
+    
+    await mailService.send(msg);
+    console.log("✅ Email sent successfully to:", params.to);
     return true;
   } catch (error) {
-    console.error('SendGrid email error:', error);
+    console.error('❌ SendGrid email error:', error);
+    if (error.response?.body?.errors) {
+      console.error('SendGrid detailed errors:', error.response.body.errors);
+    }
     return false;
   }
 }
@@ -113,7 +121,7 @@ export function generateTaskDueEmail(
 
   return {
     to: userEmail,
-    from: 'grimoldiignacio@gmail.com', // Usar el email verificado del usuario
+    from: 'grimoldiignacio@gmail.com', // Email verificado en SendGrid
     subject,
     html,
     text
