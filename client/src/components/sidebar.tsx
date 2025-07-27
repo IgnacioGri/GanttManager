@@ -76,7 +76,7 @@ export function Sidebar({
           <Button variant="ghost" size="icon" onClick={onNewTask} disabled={!project} title="Add Task">
             <Plus className="w-4 h-4" />
           </Button>
-          <Button variant="ghost" size="icon" asChild title="Help">
+          <Button variant="ghost" size="icon" asChild title="Manual de Usuario">
             <Link href="/help">
               <HelpCircle className="w-4 h-4" />
             </Link>
@@ -171,6 +171,21 @@ export function Sidebar({
           {project && (
             <TagManager projectId={project.id} />
           )}
+
+          {/* Help Section */}
+          <div className="bg-white p-4 rounded-lg shadow-sm border border-slate-200">
+            <h3 className="text-sm uppercase tracking-wide text-slate-500 mb-3">AYUDA</h3>
+            <Button 
+              variant="outline" 
+              className="w-full justify-start" 
+              asChild
+            >
+              <Link href="/help">
+                <HelpCircle className="w-4 h-4 mr-2" />
+                Manual de Usuario
+              </Link>
+            </Button>
+          </div>
 
         </div>
       )}
