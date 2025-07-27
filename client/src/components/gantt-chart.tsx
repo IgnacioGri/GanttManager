@@ -261,22 +261,22 @@ export function GanttChart({ project, timelineScale, onEditTask, onAddComment, o
   }
 
   return (
-    <div className={`${isFullScreen ? 'fixed inset-0 bg-slate-50 z-50 p-6' : 'h-full'} flex flex-col`}>
+    <div className={`${isFullScreen ? 'fixed inset-0 bg-background z-50 p-6' : 'h-full'} flex flex-col`}>
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <div>
-            <h2 className="text-2xl font-bold text-slate-900">Gantt Chart</h2>
-            <p className="text-sm text-slate-500 uppercase tracking-wide">PROJECT TIMELINE</p>
+            <h2 className="text-2xl font-bold text-foreground">Gantt Chart</h2>
+            <p className="text-sm text-muted-foreground uppercase tracking-wide">PROJECT TIMELINE</p>
           </div>
           {/* Filter buttons and timeline controls */}
           <div className="flex items-center gap-6 ml-6">
-            <div className="flex bg-slate-100 rounded-lg p-1">
+            <div className="flex bg-muted rounded-lg p-1">
               <button 
                 onClick={() => setTaskFilter("all")}
                 className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${
                   taskFilter === "all" 
-                    ? 'bg-white text-slate-900 shadow-sm' 
-                    : 'text-slate-600 hover:text-slate-900'
+                    ? 'bg-background text-foreground shadow-sm' 
+                    : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
                 All Tasks
@@ -285,8 +285,8 @@ export function GanttChart({ project, timelineScale, onEditTask, onAddComment, o
                 onClick={() => setTaskFilter("pending")}
                 className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${
                   taskFilter === "pending" 
-                    ? 'bg-white text-slate-900 shadow-sm' 
-                    : 'text-slate-600 hover:text-slate-900'
+                    ? 'bg-background text-foreground shadow-sm' 
+                    : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
                 Pending
@@ -295,8 +295,8 @@ export function GanttChart({ project, timelineScale, onEditTask, onAddComment, o
                 onClick={() => setTaskFilter("in-progress")}
                 className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${
                   taskFilter === "in-progress" 
-                    ? 'bg-white text-slate-900 shadow-sm' 
-                    : 'text-slate-600 hover:text-slate-900'
+                    ? 'bg-background text-foreground shadow-sm' 
+                    : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
                 In Progress
@@ -305,8 +305,8 @@ export function GanttChart({ project, timelineScale, onEditTask, onAddComment, o
                 onClick={() => setTaskFilter("completed")}
                 className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${
                   taskFilter === "completed" 
-                    ? 'bg-white text-slate-900 shadow-sm' 
-                    : 'text-slate-600 hover:text-slate-900'
+                    ? 'bg-background text-foreground shadow-sm' 
+                    : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
                 Completed
@@ -315,16 +315,16 @@ export function GanttChart({ project, timelineScale, onEditTask, onAddComment, o
 
             {/* Timeline Scale Controls */}
             <div className="flex items-center gap-2">
-              <span className="text-xs text-slate-500 uppercase tracking-wide">Scale:</span>
-              <div className="flex bg-slate-100 rounded-lg p-1">
+              <span className="text-xs text-muted-foreground uppercase tracking-wide">Scale:</span>
+              <div className="flex bg-muted rounded-lg p-1">
                 {(['Day', 'Week', 'Month'] as const).map((scale) => (
                   <button
                     key={scale}
                     onClick={() => onTimelineScaleChange(scale)}
                     className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${
                       timelineScale === scale
-                        ? 'bg-white text-slate-900 shadow-sm'
-                        : 'text-slate-600 hover:text-slate-900'
+                        ? 'bg-background text-foreground shadow-sm'
+                        : 'text-muted-foreground hover:text-foreground'
                     }`}
                   >
                     {scale}
@@ -353,12 +353,12 @@ export function GanttChart({ project, timelineScale, onEditTask, onAddComment, o
         )}
       </div>
 
-      <div className="flex-1 bg-white rounded-lg border border-slate-200 shadow-lg overflow-hidden relative">
+      <div className="flex-1 bg-card rounded-lg border border-border shadow-lg overflow-hidden relative">
         {/* Task list on the left - hidden in full screen */}
         {!isFullScreen && (
-          <div className={`absolute top-0 left-0 ${isCollapsed ? 'w-80' : 'w-[480px]'} bg-white border-r border-slate-200 h-full overflow-y-auto z-10 transition-all duration-300`}>
-          <div className="border-b border-slate-200 bg-slate-50 px-4 py-3 sticky top-0 h-[52px] flex items-center">
-            <div className="w-full flex items-center text-xs font-medium text-slate-600 uppercase tracking-wide">
+          <div className={`absolute top-0 left-0 ${isCollapsed ? 'w-80' : 'w-[480px]'} bg-card border-r border-border h-full overflow-y-auto z-10 transition-all duration-300`}>
+          <div className="border-b border-border bg-muted px-4 py-3 sticky top-0 h-[52px] flex items-center">
+            <div className="w-full flex items-center text-xs font-medium text-muted-foreground uppercase tracking-wide">
               <div className="flex-1">TASK NAME</div>
               <div className="w-16 text-center">PROGRESS</div>
               <div className="w-20 text-center">START</div>
@@ -373,12 +373,12 @@ export function GanttChart({ project, timelineScale, onEditTask, onAddComment, o
             if (taskFilter === "completed") return task.progress === 100;
             return true;
           }).map((task, index) => (
-            <div key={task.id} className="hover:bg-blue-50 group transition-colors" data-task-id={task.id}>
-              <div className="px-3 h-[52px] flex items-center text-sm border-b border-slate-100">
+            <div key={task.id} className="hover:bg-accent group transition-colors" data-task-id={task.id}>
+              <div className="px-3 h-[52px] flex items-center text-sm border-b border-border">
                 <div className="w-full flex items-center">
                   <div className="flex-1 min-w-0 pr-4">
                     <div 
-                      className="font-medium text-slate-900 cursor-pointer hover:text-primary truncate"
+                      className="font-medium text-foreground cursor-pointer hover:text-primary truncate"
                       onClick={() => onEditTask(task)}
                       title="Click to edit task"
                     >
@@ -392,19 +392,19 @@ export function GanttChart({ project, timelineScale, onEditTask, onAddComment, o
                   </div>
                   <div className="w-16 text-center">
                     <div className="flex items-center justify-center">
-                      <div className="w-8 h-2 bg-slate-200 rounded-full overflow-hidden">
+                      <div className="w-8 h-2 bg-muted rounded-full overflow-hidden">
                         <div 
-                          className="h-full bg-blue-500 transition-all duration-300"
+                          className="h-full bg-primary transition-all duration-300"
                           style={{ width: `${task.progress}%` }}
                         />
                       </div>
-                      <span className="text-xs text-slate-600 ml-1 font-medium">{task.progress}%</span>
+                      <span className="text-xs text-muted-foreground ml-1 font-medium">{task.progress}%</span>
                     </div>
                   </div>
-                  <div className="w-20 text-xs text-slate-500 text-center">
+                  <div className="w-20 text-xs text-muted-foreground text-center">
                     {formatDate(task.startDate)}
                   </div>
-                  <div className="w-20 text-xs text-slate-500 text-center">
+                  <div className="w-20 text-xs text-muted-foreground text-center">
                     {formatDate(task.endDate)}
                   </div>
                   <div className="w-10 flex justify-center">
@@ -413,7 +413,7 @@ export function GanttChart({ project, timelineScale, onEditTask, onAddComment, o
                         <Button 
                           variant="ghost" 
                           size="icon" 
-                          className="w-6 h-6 text-slate-400 hover:text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                          className="w-6 h-6 text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity"
                         >
                           <MoreHorizontal className="w-4 h-4" />
                         </Button>
@@ -439,7 +439,7 @@ export function GanttChart({ project, timelineScale, onEditTask, onAddComment, o
                     {(task.comments || task.attachments.length > 0) && (
                       <div className="flex items-center space-x-1 ml-1">
                         {task.comments && (
-                          <div className="w-2 h-2 bg-blue-500 rounded-full" title="Has comments" />
+                          <div className="w-2 h-2 bg-primary rounded-full" title="Has comments" />
                         )}
                         {task.attachments.length > 0 && (
                           <div className="w-2 h-2 bg-amber-500 rounded-full" title="Has attachments" />

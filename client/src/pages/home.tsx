@@ -208,7 +208,7 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 font-inter">
+    <div className="min-h-screen bg-background font-inter">
       {/* Header */}
       <Header />
 
@@ -228,7 +228,7 @@ export default function Home() {
           onImportExcel={handleImportExcel}
         />
         
-        <main className="flex-1 p-6 overflow-auto bg-slate-50">
+        <main className="flex-1 p-6 overflow-auto bg-background">
           <GanttChart 
             project={project}
             timelineScale={timelineScale}

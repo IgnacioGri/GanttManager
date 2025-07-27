@@ -57,11 +57,11 @@ export function Sidebar({
   };
 
   return (
-    <aside className={`${isCollapsed ? 'w-12' : 'w-80'} bg-slate-50 border-r border-slate-200 transition-all duration-300 ${isCollapsed ? 'p-2' : 'p-6'} relative shadow-sm`}>
+    <aside className={`${isCollapsed ? 'w-12' : 'w-80'} bg-card dark:bg-card border-r border-border transition-all duration-300 ${isCollapsed ? 'p-2' : 'p-6'} relative shadow-sm`}>
       <Button
         variant="ghost"
         size="icon"
-        className="absolute -right-3 top-4 bg-white border border-slate-200 shadow-sm hover:shadow-md z-10"
+        className="absolute -right-3 top-4 bg-card border border-border shadow-sm hover:shadow-md z-10"
         onClick={onToggleCollapse}
       >
         {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
@@ -78,7 +78,7 @@ export function Sidebar({
           <Button variant="ghost" size="icon" onClick={onImportExcel} title="Import from Excel">
             <Upload className="w-4 h-4" />
           </Button>
-          <div className="pt-4 border-t border-slate-200">
+          <div className="pt-4 border-t border-border">
             <Button 
               variant="ghost" 
               size="icon" 
@@ -100,20 +100,28 @@ export function Sidebar({
       ) : (
         <div>
           {project && (
-            <div className="mb-6 bg-white p-4 rounded-lg shadow-sm border border-slate-200">
-              <h2 className="text-sm uppercase tracking-wide text-slate-500 mb-3">PROJECT DETAILS</h2>
+            <div className="mb-6 bg-card p-4 rounded-lg shadow-sm border border-border">
+              <h2 className="text-sm uppercase tracking-wide text-muted-foreground mb-3">PROJECT DETAILS</h2>
               <div className="space-y-3 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-slate-600 uppercase text-xs tracking-wide">START DATE</span>
-                  <span className="font-medium">{formatDate(project.startDate)}</span>
+                  <span className="text-muted-foreground uppercase text-xs tracking-wide">START DATE</span>
+                  <span className="font-medium text-foreground">{formatDate(project.startDate)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-600 uppercase text-xs tracking-wide">END DATE</span>
-                  <span className="font-medium">{formatDate(getProjectEndDate(project))}</span>
+                  <span className="text-muted-foreground uppercase text-xs tracking-wide">END DATE</span>
+                  <span className="font-medium text-foreground">{formatDate(getProjectEndDate(project))}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-600 uppercase text-xs tracking-wide">PROGRESS</span>
-                  <span className="font-medium">{calculateProgress(project)}%</span>
+                <div className="flex flex-col">
+                  <div className="flex justify-between mb-2">
+                    <span className="text-muted-foreground uppercase text-xs tracking-wide">PROGRESS</span>
+                    <span className="font-medium text-foreground">{calculateProgress(project)}%</span>
+                  </div>
+                  <div className="flex-1 bg-muted rounded-full h-2">
+                    <div 
+                      className="bg-primary h-2 rounded-full transition-all duration-300" 
+                      style={{ width: `${calculateProgress(project)}%` }}
+                    />
+                  </div>
                 </div>
               </div>
             </div>
@@ -121,8 +129,8 @@ export function Sidebar({
 
 
 
-          <div className="mb-6 bg-white p-4 rounded-lg shadow-sm border border-slate-200">
-            <h3 className="text-sm uppercase tracking-wide text-slate-500 mb-3">TASK ACTIONS</h3>
+          <div className="mb-6 bg-card p-4 rounded-lg shadow-sm border border-border">
+            <h3 className="text-sm uppercase tracking-wide text-muted-foreground mb-3">TASK ACTIONS</h3>
             <div className="space-y-2">
               <Button 
                 variant="outline" 
@@ -135,8 +143,8 @@ export function Sidebar({
             </div>
           </div>
 
-          <div className="mb-6 bg-white p-4 rounded-lg shadow-sm border border-slate-200">
-            <h3 className="text-sm uppercase tracking-wide text-slate-500 mb-3">PROJECT ACTIONS</h3>
+          <div className="mb-6 bg-card p-4 rounded-lg shadow-sm border border-border">
+            <h3 className="text-sm uppercase tracking-wide text-muted-foreground mb-3">PROJECT ACTIONS</h3>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" className="w-full justify-between">
