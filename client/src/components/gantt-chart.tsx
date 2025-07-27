@@ -125,43 +125,19 @@ export function GanttChart({ project, timelineScale, onEditTask, onAddComment, o
     }, 50);
   };
 
-  // Function to apply dark mode to Gantt chart - JavaScript-based approach
-  const applyDarkModeToGantt = useCallback(() => {
+  // Simple function to ensure text readability
+  const ensureTextReadability = useCallback(() => {
     if (!ganttRef.current) return;
     
-    const isDarkMode = document.documentElement.classList.contains('dark');
-    if (!isDarkMode) return; // Solo aplicamos en dark mode
-    
-    // Setear fondo principal
-    const ganttElement = ganttRef.current.querySelector('.gantt') as HTMLElement;
-    if (ganttElement) {
-      ganttElement.style.backgroundColor = 'hsl(var(--background))';
-    }
-    
-    // Forzar colores en textos SVG (fechas, números, labels)
-    const upperTexts = ganttRef.current.querySelectorAll('.upper-text');
-    upperTexts.forEach((text: Element) => {
-      (text as SVGTextElement).style.fill = 'hsl(var(--foreground))';
+    // Only fix text readability issues, don't force dark mode
+    const barLabels = ganttRef.current.querySelectorAll('.bar-label');
+    barLabels.forEach((label: Element) => {
+      const svgText = label as SVGTextElement;
+      // Ensure good contrast for text on task bars
+      svgText.style.fill = '#ffffff';
+      svgText.style.fontWeight = '500';
+      svgText.style.textShadow = '1px 1px 2px rgba(0,0,0,0.8)';
     });
-    
-    const lowerTexts = ganttRef.current.querySelectorAll('.lower-text');
-    lowerTexts.forEach((text: Element) => {
-      (text as SVGTextElement).style.fill = 'hsl(var(--foreground))';
-    });
-    
-    // Todos los <text> por si hay más (ej: labels extras)
-    const allTexts = ganttRef.current.querySelectorAll('text');
-    allTexts.forEach((text: Element) => {
-      (text as SVGTextElement).style.fill = 'hsl(var(--foreground))';
-    });
-    
-    // Flechas y otros elementos (por completitud)
-    const arrows = ganttRef.current.querySelectorAll('.arrow');
-    arrows.forEach((arrow: Element) => {
-      (arrow as SVGPathElement).style.stroke = 'hsl(var(--primary))';
-    });
-    
-    console.log('Dark mode applied to Gantt texts'); // Para debug
   }, []);
 
   // Function to create/recreate the Gantt chart
@@ -214,24 +190,15 @@ export function GanttChart({ project, timelineScale, onEditTask, onAddComment, o
       ganttInstance.current = new window.Gantt(ganttRef.current, tasks, ganttOptions);
       console.log('✅ Gantt instance created successfully');
       
-      // Apply task colors and basic dark mode setup with increased timeout
+      // Apply task colors and ensure text readability
       setTimeout(() => {
         applyTaskColors();
-        applyDarkModeToGantt();
-      }, 200); // Aumentado para dar tiempo al SVG
-      
-      // Observer para re-aplicar si el Gantt cambia (ej: zoom, filter)
-      const observer = new MutationObserver(() => {
-        applyDarkModeToGantt();
-      });
-      observer.observe(ganttRef.current!, { childList: true, subtree: true });
-      
-      // Store observer for cleanup
-      (ganttInstance.current as any).mutationObserver = observer;
+        ensureTextReadability();
+      }, 100);
     } catch (error) {
       console.error('❌ Error creating Gantt chart:', error);
     }
-  }, [project?.tasks, timelineScale, onEditTask, handleDateChange, handleProgressChange, applyDarkModeToGantt]);
+  }, [project?.tasks, timelineScale, onEditTask, handleDateChange, handleProgressChange, ensureTextReadability]);
 
   // Effect that ALWAYS recreates the chart when dependencies change
   useEffect(() => {
@@ -252,10 +219,6 @@ export function GanttChart({ project, timelineScale, onEditTask, onAddComment, o
     return () => {
       // Cleanup on unmount
       if (ganttInstance.current) {
-        // Clean up the mutation observer
-        if ((ganttInstance.current as any).mutationObserver) {
-          (ganttInstance.current as any).mutationObserver.disconnect();
-        }
         ganttInstance.current = null;
       }
     };

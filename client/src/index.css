@@ -278,18 +278,18 @@
   font-size: 12px !important;
 }
 
-/* Progress percentage text */
-.dark .gantt .bar-progress-text {
+/* Progress percentage text - Good contrast for both modes */
+.gantt .bar-progress-text {
   fill: white !important;
   font-weight: 600 !important;
-  text-shadow: 1px 1px 2px rgba(0,0,0,0.5) !important;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.8) !important;
 }
 
-/* Numbers and task labels */
-.dark .gantt .bar-label {
+/* Numbers and task labels - Good contrast for both modes */
+.gantt .bar-label {
   fill: white !important;
   font-weight: 500 !important;
-  text-shadow: 1px 1px 2px rgba(0,0,0,0.5) !important;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.8) !important;
 }
 
 .dark .gantt-container .popup-wrapper {
