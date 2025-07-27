@@ -1,0 +1,128 @@
+¡Claro! Aquí va el fix limpio y directo para el modo oscuro en el Gantt chart con frappe-gantt, basado en la versión actual (recomiendo actualizar a 0.8.0 o superior si no lo tenés: npm install frappe-gantt@latest). El problema es que los elementos SVG (fechas, flechas, textos) usan colores default que se pierden en fondo oscuro, así que agregamos overrides CSS adaptados a Tailwind (usando .dark en lugar de media queries).
+
+1. Actualizá la Librería (opcional pero recomendado)
+
+En package.json, asegurate de tener "frappe-gantt": "^0.8.0" o superior. Luego, npm install. En versiones nuevas, agregar class="dark" al container activa un theme dark básico.
+
+2. Modificá el Componente del Gantt
+
+En el archivo donde inicializás el Gantt (ej: GanttChart.tsx en /client), agregá la clase dark condicionalmente al container:
+
+text
+
+Collapse
+
+Wrap
+
+Copy
+import Gantt from 'frappe-gantt';
+// ... resto del código
+
+<div id="gantt-target" className="gantt-target bg-white dark:bg-gray-800"></div>
+
+// En useEffect o donde inicializás:
+new Gantt('#gantt-target', tasks, {
+  // Tus options...
+});
+Si usás un hook para theme, agregá dark dinámicamente: className={gantt-target ${theme === 'dark' ? 'dark' : ''} bg-white dark:bg-gray-800}.
+
+3. Agregá los Overrides CSS
+
+Pegá esto al final de tu archivo CSS global (ej: globals.css o index.css en /client, después de @tailwind base; @tailwind components; @tailwind utilities;):
+
+text
+
+Collapse
+
+Wrap
+
+Copy
+/* Overrides para frappe-gantt en dark mode (adaptado de GitHub issue #376) */
+.dark .gantt-container {
+  background-color: #1f2937; /* gray-800 */
+}
+
+.dark .gantt .grid-header {
+  fill: #1f2937; /* gray-800 */
+  stroke: #4b5563; /* gray-600 */
+}
+
+.dark .gantt .grid-row {
+  fill: #1f2937; /* gray-800 */
+}
+
+.dark .gantt .grid-row:nth-child(even) {
+  fill: #374151; /* gray-700 */
+}
+
+.dark .gantt .row-line {
+  stroke: #374151; /* gray-700 */
+}
+
+.dark .gantt .tick {
+  stroke: #4b5563; /* gray-600 */
+}
+
+.dark .gantt .today-highlight {
+  fill: #6b7280; /* gray-500 */
+  opacity: 0.2;
+}
+
+.dark .gantt .arrow {
+  stroke: #d1d5db; /* gray-300 - flechas en gris claro */
+}
+
+.dark .gantt .bar {
+  fill: #4b5563; /* gray-600 - barras base más oscuras */
+  stroke: none;
+}
+
+.dark .gantt .bar-progress {
+  fill: #6366f1; /* indigo-500 - progreso en azul oscuro */
+}
+
+.dark .gantt .bar-invalid {
+  fill: transparent;
+  stroke: #9ca3af; /* gray-400 */
+}
+
+.dark .gantt .bar-invalid ~ .bar-label,
+.dark .gantt .bar-label.big {
+  fill: #f3f4f6; /* gray-100 - labels en casi blanco */
+}
+
+.dark .gantt .bar-wrapper:hover .bar,
+.dark .gantt .bar-wrapper.active .bar {
+  fill: #6b7280; /* gray-500 */
+}
+
+.dark .gantt .bar-wrapper:hover .bar-progress,
+.dark .gantt .bar-wrapper.active .bar-progress {
+  fill: #818cf8; /* indigo-400 */
+}
+
+.dark .gantt .upper-text {
+  fill: #9ca3af; /* gray-400 - fechas superiores en gris claro */
+}
+
+.dark .gantt .lower-text {
+  fill: #f3f4f6; /* gray-100 - números/días en casi blanco */
+}
+
+.dark .gantt-container .popup-wrapper {
+  background-color: #374151; /* gray-700 */
+}
+
+.dark .gantt-container .popup-wrapper .title {
+  border-color: #6366f1; /* indigo-500 */
+}
+
+.dark .gantt-container .popup-wrapper .pointer {
+  border-top-color: #374151; /* gray-700 */
+}
+4. Pruebas
+
+Reiniciá la app (npm run dev).
+Toggleá el modo oscuro y recargá la página si es necesario.
+Ahora, fechas/números/flechas deberían ser visibles (gris claro/blanco), y barras más oscuras.
+Si no aplica (ej: specificity issues), agregá !important a los fills/strokes clave. Si seguís con problemas, compartí tu GanttChart.tsx o CSS global. ¡Listo!¡Claro! Aquí va el fix limpio y directo para el modo oscuro en el Gantt chart con frappe-gantt, basado en la versión actual (recomiendo actualizar a 0.8.0 o superior si no lo tenés: npm install frappe-gantt@latest). El problema es que los elementos SVG (fechas, flechas, textos) usan colores default que se pierden en fondo oscuro, así que agregamos overrides CSS adaptados a Tailwind (usando .dark en lugar de media queries).

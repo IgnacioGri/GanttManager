@@ -11,6 +11,15 @@ Default timeline scale: Days (changed from Week to provide more detailed daily v
 
 ## Recent Changes
 
+### Dark Mode for Gantt Chart - COMPLETED (January 27, 2025)
+- Complete dark mode implementation for frappe-gantt library elements
+- SVG-specific CSS selectors targeting .gantt elements (grid-header, grid-row, arrows, text)
+- Dark color variants for task bars in dark mode (darker purple, blue, etc.)
+- Fixed visibility issues: dates, numbers, arrows, and labels now visible in dark theme
+- Text styling with proper contrast: white text with shadows on task bars
+- Grid and timeline elements adapted with proper stroke and fill colors
+- User preference: All text elements clearly visible with proper contrast ratios
+
 ### Excel Import/Export System - COMPLETED (January 27, 2025)
 - Complete Excel import functionality for creating projects from spreadsheets
 - Excel template generation with proper formatting and column structure
