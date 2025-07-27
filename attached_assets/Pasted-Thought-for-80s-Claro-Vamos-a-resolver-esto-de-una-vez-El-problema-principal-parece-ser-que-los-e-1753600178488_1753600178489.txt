@@ -1,0 +1,118 @@
+Thought for 80s
+¡Claro! Vamos a resolver esto de una vez. El problema principal parece ser que los estilos CSS no se aplican completamente a los elementos SVG de las fechas (especialmente .lower-text y .upper-text), posiblemente porque la librería frappe-gantt tiene estilos con mayor especificidad, se cargan después, o hay un issue con la herencia de variables CSS en el SVG. Los .lower-text por default son fill: #000 (negro) en la CSS de la librería, lo que causa negro sobre negro en dark mode.
+
+Dado que tus overrides con !important no funcionaron (a pesar de ser correctos en teoría), la solución más confiable es usar JavaScript para forzar los colores después de renderizar el Gantt. Esto overridea cualquier estilo default o inline. Adapté el código basado en el issue #376 de frappe-gantt (donde proponen un theme dark similar) y en la estructura de tu componente.
+
+Pasos para el Fix
+
+Actualizá la función applyDarkModeToGantt en client/src/components/gantt-chart.tsx:
+
+Expande la función para seleccionar y setear inline los fills en los textos/fecha cuando es dark mode.
+Llamala múltiples veces si es necesario (después de create, y en un observer por si el Gantt se actualiza).
+Reemplazá la función actual con esta:
+
+tsx
+
+Collapse
+
+Wrap
+
+Copy
+const applyDarkModeToGantt = useCallback(() => {
+  if (!ganttRef.current) return;
+  
+  const isDarkMode = document.documentElement.classList.contains('dark');
+  if (!isDarkMode) return; // Solo aplicamos en dark mode
+  
+  // Setear fondo principal
+  const ganttElement = ganttRef.current.querySelector('.gantt') as HTMLElement;
+  if (ganttElement) {
+    ganttElement.style.backgroundColor = 'hsl(var(--background))';
+  }
+  
+  // Forzar colores en textos SVG (fechas, números, labels)
+  const upperTexts = ganttRef.current.querySelectorAll('.upper-text');
+  upperTexts.forEach((text: Element) => {
+    (text as SVGTextElement).style.fill = 'hsl(var(--foreground))';
+  });
+  
+  const lowerTexts = ganttRef.current.querySelectorAll('.lower-text');
+  lowerTexts.forEach((text: Element) => {
+    (text as SVGTextElement).style.fill = 'hsl(var(--foreground))';
+  });
+  
+  // Todos los <text> por si hay más (ej: labels extras)
+  const allTexts = ganttRef.current.querySelectorAll('text');
+  allTexts.forEach((text: Element) => {
+    (text as SVGTextElement).style.fill = 'hsl(var(--foreground))';
+  });
+  
+  // Flechas y otros elementos (por completitud)
+  const arrows = ganttRef.current.querySelectorAll('.arrow');
+  arrows.forEach((arrow: Element) => {
+    (arrow as SVGPathElement).style.stroke = 'hsl(var(--primary))';
+  });
+  
+  console.log('Dark mode applied to Gantt texts'); // Para debug
+}, []);
+Llamá a applyDarkModeToGantt en más lugares para asegurar que se aplique después de cualquier update:
+
+En createGanttChart, aumentá el setTimeout a 200ms (a veces el SVG tarda en renderizarse).
+Agregá un observer para detectar cambios en el Gantt (por si se redibuja).
+Modificá createGanttChart:
+
+tsx
+
+Collapse
+
+Wrap
+
+Copy
+const createGanttChart = useCallback(() => {
+  // ... código existente ...
+  
+  setTimeout(() => {
+    applyTaskColors();
+    applyDarkModeToGantt();
+  }, 200); // Aumentado para dar tiempo al SVG
+  
+  // Observer para re-aplicar si el Gantt cambia (ej: zoom, filter)
+  const observer = new MutationObserver(() => {
+    applyDarkModeToGantt();
+  });
+  observer.observe(ganttRef.current!, { childList: true, subtree: true });
+  
+  return () => observer.disconnect(); // Cleanup
+}, [project?.tasks, timelineScale, onEditTask, handleDateChange, handleProgressChange, applyDarkModeToGantt]);
+Mejorá el CSS como backup (aunque JS es más seguro):
+
+Agregá selectores más específicos en client/src/index.css para overridear la librería.
+Asegurate de que frappe-gantt.css se importe antes de tu index.css (en tu HTML o Vite config).
+Agregá esto al final de la sección dark mode en index.css:
+
+css
+
+Collapse
+
+Wrap
+
+Copy
+.dark .gantt svg .upper-text,
+.dark .gantt svg .lower-text,
+.dark .gantt svg text {
+  fill: hsl(var(--foreground)) !important;
+}
+
+.dark .gantt svg .grid-header text {
+  fill: hsl(var(--foreground)) !important;
+}
+Verificá la importación de frappe-gantt.css:
+
+Si usás <link rel="stylesheet" href="frappe-gantt.css"> en index.html, asegurate de que esté antes de tu <link to="" index.css="">.
+Si es via import en JS, haz import 'frappe-gantt/dist/frappe-gantt.css'; antes de tus estilos.
+Pruebas
+
+Reiniciá la app (npm run dev).
+Toggleá dark mode y verificá las consolas para "Dark mode applied to Gantt texts".
+Si aún no, inspeccioná el SVG en DevTools (right-click en una fecha > Inspect) y mirá si tiene fill inline o CSS que overridea. Si es #000, el JS lo forzará.
+Esto debería fixearlo definitivamente, ya que JS setea inline styles que tienen la mayor prioridad. Si seguís con issues, compartí un screenshot del inspector de elementos en el <text class="lower-text"> para ver qué estilo gana. ¡Probá y decime!</text>

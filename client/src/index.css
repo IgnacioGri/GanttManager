@@ -306,6 +306,17 @@
   border-top-color: hsl(var(--popover)) !important;
 }
 
+/* More specific selectors for SVG text elements */
+.dark .gantt svg .upper-text,
+.dark .gantt svg .lower-text,
+.dark .gantt svg text {
+  fill: hsl(var(--foreground)) !important;
+}
+
+.dark .gantt svg .grid-header text {
+  fill: hsl(var(--foreground)) !important;
+}
+
 .gantt-container .gantt-task {
   cursor: pointer;
   height: 52px !important; /* Match task list row height exactly */
