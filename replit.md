@@ -11,6 +11,24 @@ Default timeline scale: Days (changed from Week to provide more detailed daily v
 
 ## Recent Changes
 
+### Excel Import/Export System - COMPLETED (January 27, 2025)
+- Complete Excel import functionality for creating projects from spreadsheets
+- Excel template generation with proper formatting and column structure
+- Smart date parsing supporting DD/MM/YYYY format from Excel
+- Automatic project, task, and tag creation from Excel data
+- Minimal required columns (only name, start date, end date are mandatory)
+- Optional columns for progress, dependencies, tags, and comments
+- Integration in sidebar with dedicated import button
+- User preference: Only 3 columns mandatory, rest optional with no assumptions
+
+### Multi-User Authentication System - COMPLETED (January 27, 2025)
+- Full Replit Auth integration with PostgreSQL user management
+- Complete data isolation between users (projects, tasks, tags)
+- Landing page for non-authenticated users
+- Secure session management with database storage
+- Authentication middleware on all protected routes
+- User-specific data access patterns throughout application
+
 ### Tags System Implementation - COMPLETED (January 27, 2025)
 - Full tags system implemented with complete CRUD operations
 - Backend schema and storage layer for tags with project association

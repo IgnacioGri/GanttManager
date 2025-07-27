@@ -5,7 +5,7 @@ export interface ExcelTaskData {
   name: string;
   startDate: string;
   endDate: string;
-  progress: number;
+  progress: number | null;
   dependencies?: string;
   tags?: string;
   comments?: string;
@@ -27,11 +27,11 @@ export function parseExcelFile(buffer: Buffer): ExcelTaskData[] {
       name: row.name || '',
       startDate: formatExcelDate(row.startDate),
       endDate: formatExcelDate(row.endDate),
-      progress: parseProgress(row.progress),
+      progress: row.progress ? parseProgress(row.progress) : null,
       dependencies: row.dependencies || '',
       tags: row.tags || '',
       comments: row.comments || ''
-    })).filter(task => task.name.trim() !== '');
+    })).filter(task => task.name.trim() !== '' && task.startDate && task.endDate);
   } catch (error) {
     throw new Error('Error parsing Excel file: ' + (error as Error).message);
   }
@@ -89,11 +89,11 @@ function parseProgress(progressValue: any): number {
 export function generateExcelTemplate(): Buffer {
   const templateData = [
     ['Nombre de Tarea', 'Fecha Inicio', 'Fecha Fin', 'Progreso (%)', 'Dependencias', 'Etiquetas', 'Comentarios'],
-    ['Planificación inicial', '01/02/2025', '05/02/2025', 100, '', 'planificacion,importante', 'Definir requisitos y alcance'],
-    ['Desarrollo Frontend', '06/02/2025', '20/02/2025', 60, '1', 'desarrollo,frontend', 'Desarrollo de la interfaz de usuario'],
-    ['Desarrollo Backend', '06/02/2025', '25/02/2025', 40, '1', 'desarrollo,backend', 'APIs y lógica de negocio'],
-    ['Testing', '21/02/2025', '28/02/2025', 0, '2,3', 'testing,qa', 'Pruebas unitarias e integración'],
-    ['Deployment', '01/03/2025', '03/03/2025', 0, '4', 'deployment', 'Despliegue a producción']
+    ['Planificación inicial', '01/02/2025', '05/02/2025', '', '', '', ''],
+    ['Desarrollo Frontend', '06/02/2025', '20/02/2025', '', '', '', ''],
+    ['Desarrollo Backend', '06/02/2025', '25/02/2025', '', '', '', ''],
+    ['Testing', '21/02/2025', '28/02/2025', '', '', '', ''],
+    ['Deployment', '01/03/2025', '03/03/2025', '', '', '', '']
   ];
 
   const worksheet = XLSX.utils.aoa_to_sheet(templateData);
@@ -139,7 +139,7 @@ export function convertExcelToTasks(
       name: row.name,
       startDate: row.startDate,
       endDate: row.endDate,
-      progress: row.progress,
+      progress: row.progress !== null ? row.progress : 0, // Default to 0 only if not specified
       dependencies,
       comments: row.comments || '',
       attachments: [],

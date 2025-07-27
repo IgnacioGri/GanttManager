@@ -153,14 +153,23 @@ export function ExcelImportModal({ isOpen, onClose }: ExcelImportModalProps) {
           {/* Format Info */}
           <div className="bg-gray-50 dark:bg-gray-900 p-3 rounded-lg text-sm">
             <h4 className="font-medium mb-2">Formato esperado:</h4>
-            <ul className="text-xs space-y-1 text-gray-600 dark:text-gray-400">
-              <li>• <strong>Columna A:</strong> Nombre de la tarea</li>
-              <li>• <strong>Columna B:</strong> Fecha de inicio (DD/MM/YYYY)</li>
-              <li>• <strong>Columna C:</strong> Fecha de fin (DD/MM/YYYY)</li>
-              <li>• <strong>Columna D:</strong> Progreso (0-100)</li>
-              <li>• <strong>Columna E:</strong> Dependencias (opcional, IDs separados por comas)</li>
-              <li>• <strong>Columna F:</strong> Etiquetas (opcional, separadas por comas)</li>
-            </ul>
+            <div className="mb-2">
+              <p className="text-xs font-medium text-blue-600 dark:text-blue-400 mb-1">Columnas obligatorias:</p>
+              <ul className="text-xs space-y-1 text-gray-600 dark:text-gray-400 ml-2">
+                <li>• <strong>Columna A:</strong> Nombre de la tarea</li>
+                <li>• <strong>Columna B:</strong> Fecha de inicio (DD/MM/YYYY)</li>
+                <li>• <strong>Columna C:</strong> Fecha de fin (DD/MM/YYYY)</li>
+              </ul>
+            </div>
+            <div>
+              <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Columnas opcionales:</p>
+              <ul className="text-xs space-y-1 text-gray-600 dark:text-gray-400 ml-2">
+                <li>• <strong>Columna D:</strong> Progreso (0-100, se asume 0 si está vacío)</li>
+                <li>• <strong>Columna E:</strong> Dependencias (números de fila separados por comas)</li>
+                <li>• <strong>Columna F:</strong> Etiquetas (separadas por comas)</li>
+                <li>• <strong>Columna G:</strong> Comentarios</li>
+              </ul>
+            </div>
           </div>
 
           {/* Actions */}
