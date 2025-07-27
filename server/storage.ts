@@ -15,7 +15,7 @@ import {
   type ProjectWithTasks 
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, lt } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 
 export interface IStorage {
   // User operations
@@ -43,9 +43,6 @@ export interface IStorage {
   createTag(tag: InsertTag, userId: string): Promise<Tag>;
   updateTag(id: number, userId: string, tag: Partial<InsertTag>): Promise<Tag | undefined>;
   deleteTag(id: number, userId: string): Promise<boolean>;
-  
-  // Notifications
-  getAllTasksForNotifications(): Promise<(Task & { userId: string; projectId: number })[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -306,28 +303,6 @@ export class DatabaseStorage implements IStorage {
     
     const result = await db.delete(tags).where(eq(tags.id, id));
     return result.rowCount > 0;
-  }
-
-  // Notification methods (simplified version)
-  async getAllTasksForNotifications(): Promise<any[]> {
-    try {
-      const result = await db
-        .select({
-          id: tasks.id,
-          name: tasks.name,
-          endDate: tasks.endDate,
-          progress: tasks.progress,
-          projectId: tasks.projectId,
-          userId: tasks.userId,
-        })
-        .from(tasks)
-        .where(lt(tasks.progress, 100));
-      
-      return result;
-    } catch (error) {
-      console.error("Error getting tasks for notifications:", error);
-      return [];
-    }
   }
 }
 

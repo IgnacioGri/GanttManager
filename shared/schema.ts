@@ -48,7 +48,6 @@ export const tags = pgTable("tags", {
 export const tasks = pgTable("tasks", {
   id: serial("id").primaryKey(),
   projectId: integer("project_id").notNull(),
-  userId: varchar("user_id").notNull(), // Associate tasks with users for notifications
   name: text("name").notNull(),
   startDate: text("start_date").notNull(),
   endDate: text("end_date").notNull(),
@@ -86,7 +85,6 @@ export const insertTagSchema = createInsertSchema(tags).pick({
 
 export const insertTaskSchema = createInsertSchema(tasks).pick({
   projectId: true,
-  userId: true,
   name: true,
   startDate: true,
   endDate: true,
