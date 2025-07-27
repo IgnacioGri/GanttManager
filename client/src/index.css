@@ -232,7 +232,8 @@
 }
 
 .dark .gantt .arrow {
-  stroke: hsl(var(--muted-foreground)) !important;
+  stroke: hsl(var(--primary)) !important;
+  stroke-width: 2px !important;
 }
 
 .dark .gantt .bar {
@@ -259,11 +260,36 @@
 }
 
 .dark .gantt .upper-text {
-  fill: hsl(var(--muted-foreground)) !important;
+  fill: hsl(var(--foreground)) !important;
 }
 
 .dark .gantt .lower-text {
   fill: hsl(var(--foreground)) !important;
+}
+
+/* Date labels and text elements */
+.dark .gantt text {
+  fill: hsl(var(--foreground)) !important;
+  font-size: 12px !important;
+}
+
+.dark .gantt .gantt-date {
+  fill: hsl(var(--foreground)) !important;
+  font-size: 12px !important;
+}
+
+/* Progress percentage text */
+.dark .gantt .bar-progress-text {
+  fill: white !important;
+  font-weight: 600 !important;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.5) !important;
+}
+
+/* Numbers and task labels */
+.dark .gantt .bar-label {
+  fill: white !important;
+  font-weight: 500 !important;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.5) !important;
 }
 
 .dark .gantt-container .popup-wrapper {

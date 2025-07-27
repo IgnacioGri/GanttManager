@@ -231,18 +231,30 @@ export function GanttChart({ project, timelineScale, onEditTask, onAddComment, o
     
     project.tasks.forEach((task, index) => {
       setTimeout(() => {
-        // Phase-based colors
-        const getTaskColor = (taskName: string) => {
+        // Phase-based colors with dark mode variants
+        const getTaskColor = (taskName: string, isDarkMode: boolean = false) => {
           const name = taskName.toLowerCase();
-          if (name.includes('planning') || name.includes('project')) return '#8b5cf6'; // Purple
-          if (name.includes('design') || name.includes('ui') || name.includes('ux')) return '#06b6d4'; // Cyan
-          if (name.includes('development') || name.includes('frontend') || name.includes('backend')) return '#3b82f6'; // Blue
-          if (name.includes('testing') || name.includes('qa')) return '#f59e0b'; // Amber
-          if (name.includes('deployment') || name.includes('launch')) return '#10b981'; // Green
-          return '#6366f1'; // Default indigo
+          if (isDarkMode) {
+            // Darker variants for dark mode
+            if (name.includes('planning') || name.includes('project')) return '#7c3aed'; // Darker purple
+            if (name.includes('design') || name.includes('ui') || name.includes('ux')) return '#0891b2'; // Darker cyan
+            if (name.includes('development') || name.includes('frontend') || name.includes('backend')) return '#2563eb'; // Darker blue
+            if (name.includes('testing') || name.includes('qa')) return '#d97706'; // Darker amber
+            if (name.includes('deployment') || name.includes('launch')) return '#059669'; // Darker green
+            return '#4f46e5'; // Darker indigo
+          } else {
+            // Light mode colors
+            if (name.includes('planning') || name.includes('project')) return '#8b5cf6'; // Purple
+            if (name.includes('design') || name.includes('ui') || name.includes('ux')) return '#06b6d4'; // Cyan
+            if (name.includes('development') || name.includes('frontend') || name.includes('backend')) return '#3b82f6'; // Blue
+            if (name.includes('testing') || name.includes('qa')) return '#f59e0b'; // Amber
+            if (name.includes('deployment') || name.includes('launch')) return '#10b981'; // Green
+            return '#6366f1'; // Default indigo
+          }
         };
         
-        const baseColor = getTaskColor(task.name);
+        const isDarkMode = document.documentElement.classList.contains('dark');
+        const baseColor = getTaskColor(task.name, isDarkMode);
         
         // Calculate opacity based on progress: 0% = solid (1.0), 100% = very transparent (0.3)
         const opacity = 1.0 - (task.progress / 100) * 0.7;
