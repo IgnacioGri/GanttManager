@@ -200,13 +200,23 @@
   background-color: hsl(var(--background)) !important;
 }
 
-/* Override any inline styles */
-.gantt-container [style*="background"] {
-  background-color: hsl(var(--background)) !important;
+/* Override any inline styles - most aggressive approach */
+.dark .gantt-container *,
+.dark .gantt-container *[style],
+.dark .gantt-container [style*="background"],
+.dark .gantt-container [style*="white"],
+.dark .gantt-container [style*="#fff"],
+.dark .gantt-container [style*="#ffffff"] {
+  background-color: hsl(240, 10%, 3.9%) !important;
+  background: hsl(240, 10%, 3.9%) !important;
 }
 
-.dark .gantt-container [style*="background"] {
-  background-color: hsl(var(--background)) !important;
+/* Target the Gantt library's specific elements */
+.dark .gantt-container .gantt *,
+.dark .gantt-container [class*="gantt"] *,
+.dark .gantt-container div[style*="background"] {
+  background-color: hsl(240, 10%, 3.9%) !important;
+  background: hsl(240, 10%, 3.9%) !important;
 }
 
 .gantt-container .gantt-task {

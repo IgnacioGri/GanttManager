@@ -129,36 +129,63 @@ export function GanttChart({ project, timelineScale, onEditTask, onAddComment, o
   const applyDarkModeToGantt = () => {
     if (!ganttRef.current) return;
     
-    // Get computed background color from CSS variables
-    const computedStyle = getComputedStyle(document.documentElement);
-    const backgroundColor = computedStyle.getPropertyValue('--background').trim();
-    const bgColor = `hsl(${backgroundColor})`;
+    // Check if we're in dark mode
+    const isDarkMode = document.documentElement.classList.contains('dark');
+    const bgColor = isDarkMode ? '#0f0f0f' : '#ffffff'; // Use hex for more reliable application
     
-    // Force background color on all div elements within Gantt
-    const divElements = ganttRef.current.querySelectorAll('div');
-    divElements.forEach(element => {
+    // Function to force background on an element with maximum priority
+    const forceBackground = (element: HTMLElement | SVGElement) => {
       if (element instanceof HTMLElement) {
-        element.style.setProperty('background-color', bgColor, 'important');
-        element.style.setProperty('background', bgColor, 'important');
+        // Remove all existing background properties
+        element.style.removeProperty('background');
+        element.style.removeProperty('background-color');
+        element.style.removeProperty('background-image');
+        
+        // Apply new background with highest priority
+        element.style.cssText += `background-color: ${bgColor} !important; background: ${bgColor} !important;`;
+        element.setAttribute('style', element.getAttribute('style') + `background-color: ${bgColor} !important; background: ${bgColor} !important;`);
       }
-    });
-    
-    // Apply to SVG elements
-    const svgElements = ganttRef.current.querySelectorAll('svg');
-    svgElements.forEach(element => {
+      
       if (element instanceof SVGElement) {
-        element.style.setProperty('background-color', bgColor, 'important');
-        element.style.setProperty('background', bgColor, 'important');
+        element.style.cssText += `background-color: ${bgColor} !important;`;
+        element.setAttribute('fill', bgColor);
+      }
+    };
+    
+    // Apply to the container itself first
+    forceBackground(ganttRef.current);
+    
+    // Get ALL descendant elements and force background
+    const allElements = ganttRef.current.querySelectorAll('*');
+    console.log(`Applying dark mode to ${allElements.length} elements`);
+    
+    allElements.forEach((element, index) => {
+      forceBackground(element);
+      
+      // Special handling for elements with inline styles
+      if (element instanceof HTMLElement && element.style.cssText.includes('background')) {
+        const currentStyle = element.style.cssText;
+        element.style.cssText = currentStyle.replace(/background[^;]*;?/g, '') + `background-color: ${bgColor} !important;`;
       }
     });
     
-    // Apply to main container
-    if (ganttRef.current.firstChild instanceof HTMLElement) {
-      ganttRef.current.firstChild.style.setProperty('background-color', bgColor, 'important');
-    }
+    // Additional targeting using more specific selectors
+    const additionalSelectors = [
+      'div', 'svg', 'rect', 'g', 
+      '[class*="gantt"]', '[id*="gantt"]',
+      '[style*="background"]', '[style*="fff"]', '[style*="white"]'
+    ];
     
-    // Apply to the container itself
-    ganttRef.current.style.setProperty('background-color', bgColor, 'important');
+    additionalSelectors.forEach(selector => {
+      try {
+        const elements = ganttRef.current?.querySelectorAll(selector);
+        elements?.forEach(element => forceBackground(element));
+      } catch (e) {
+        // Ignore selector errors
+      }
+    });
+    
+    console.log('Dark mode application completed');
   };
 
   // Function to create/recreate the Gantt chart
@@ -211,11 +238,35 @@ export function GanttChart({ project, timelineScale, onEditTask, onAddComment, o
       ganttInstance.current = new window.Gantt(ganttRef.current, tasks, ganttOptions);
       console.log('✅ Gantt instance created successfully');
       
-      // Apply dark mode styling after creation
-      setTimeout(() => {
+      // Immediately apply dark mode - no delays
+      applyDarkModeToGantt();
+      applyTaskColors();
+      
+      // Set up continuous monitoring for background changes
+      const observer = new MutationObserver(() => {
         applyDarkModeToGantt();
-        applyTaskColors();
-      }, 100);
+      });
+      
+      // Observe all changes in the Gantt container
+      if (ganttRef.current) {
+        observer.observe(ganttRef.current, {
+          childList: true,
+          subtree: true,
+          attributes: true,
+          attributeFilter: ['style', 'class']
+        });
+      }
+      
+      // Store observer to clean up later
+      (ganttInstance.current as any).backgroundObserver = observer;
+      
+      // Multiple aggressive attempts
+      const intervals = [50, 100, 200, 300, 500, 1000];
+      intervals.forEach(interval => {
+        setTimeout(() => {
+          applyDarkModeToGantt();
+        }, interval);
+      });
     } catch (error) {
       console.error('❌ Error creating Gantt chart:', error);
     }
@@ -226,20 +277,46 @@ export function GanttChart({ project, timelineScale, onEditTask, onAddComment, o
     createGanttChart();
   }, [createGanttChart]);
 
-  // Apply task colors after chart creation
+  // Apply task colors and dark mode after chart creation
   useEffect(() => {
     if (ganttInstance.current) {
       setTimeout(() => {
         applyTaskColors();
+        applyDarkModeToGantt();
       }, 100);
+      
+      // Additional attempts for dark mode
+      setTimeout(() => {
+        applyDarkModeToGantt();
+      }, 300);
     }
   }, [project?.tasks]);
+
+  // Monitor theme changes and reapply dark mode
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      if (ganttInstance.current) {
+        applyDarkModeToGantt();
+      }
+    });
+    
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class']
+    });
+    
+    return () => observer.disconnect();
+  }, []);
 
   // Cleanup effect
   useEffect(() => {
     return () => {
       // Cleanup on unmount
       if (ganttInstance.current) {
+        // Clean up the background observer
+        if ((ganttInstance.current as any).backgroundObserver) {
+          (ganttInstance.current as any).backgroundObserver.disconnect();
+        }
         ganttInstance.current = null;
       }
     };
