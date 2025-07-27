@@ -928,38 +928,49 @@ export function TaskModal({ isOpen, onClose, task, projectId, project }: TaskMod
           </div>
 
           {/* Tag Selection */}
-          {project && project.tags && project.tags.length > 0 && (
+          {project && (
             <div>
               <Label>Tags</Label>
-              <div className="flex flex-wrap gap-2 mt-2">
-                {project.tags.map((tag) => (
-                  <button
-                    key={tag.id}
-                    type="button"
-                    onClick={() => {
-                      setSelectedTagIds(prev => 
-                        prev.includes(tag.id) 
-                          ? prev.filter(id => id !== tag.id)
-                          : [...prev, tag.id]
-                      );
-                    }}
-                    className={`px-3 py-1 text-xs rounded-full border transition-all ${
-                      selectedTagIds.includes(tag.id)
-                        ? 'text-white border-transparent'
-                        : 'text-gray-600 border-gray-300 hover:border-gray-400'
-                    }`}
-                    style={{
-                      backgroundColor: selectedTagIds.includes(tag.id) ? tag.color : 'transparent',
-                      borderColor: selectedTagIds.includes(tag.id) ? tag.color : undefined
-                    }}
-                  >
-                    {tag.name}
-                  </button>
-                ))}
-              </div>
-              <p className="text-xs text-slate-500 mt-2">
-                Click tags to add or remove them from this task
-              </p>
+              {project.tags && project.tags.length > 0 ? (
+                <>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {project.tags.map((tag) => (
+                      <button
+                        key={tag.id}
+                        type="button"
+                        onClick={() => {
+                          setSelectedTagIds(prev => 
+                            prev.includes(tag.id) 
+                              ? prev.filter(id => id !== tag.id)
+                              : [...prev, tag.id]
+                          );
+                        }}
+                        className={`px-3 py-1 text-xs rounded-full border transition-all ${
+                          selectedTagIds.includes(tag.id)
+                            ? 'text-white border-transparent'
+                            : 'text-gray-600 border-gray-300 hover:border-gray-400'
+                        }`}
+                        style={{
+                          backgroundColor: selectedTagIds.includes(tag.id) ? tag.color : 'transparent',
+                          borderColor: selectedTagIds.includes(tag.id) ? tag.color : undefined
+                        }}
+                      >
+                        {tag.name}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="text-xs text-slate-500 mt-2">
+                    Haz clic en los tags para agregarlos o quitarlos de esta tarea
+                  </p>
+                </>
+              ) : (
+                <div className="mt-2 p-3 bg-slate-50 rounded-lg text-center">
+                  <p className="text-sm text-slate-600 mb-2">No hay tags disponibles</p>
+                  <p className="text-xs text-slate-500">
+                    Crea tags desde la sección "Gestión de Tags" en la barra lateral para poder asignarlos a las tareas
+                  </p>
+                </div>
+              )}
             </div>
           )}
 

@@ -69,6 +69,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/projects", async (req, res) => {
     try {
       const validatedData = insertProjectSchema.parse(req.body);
+      
+      // Check if project name already exists
+      const existingProjects = await storage.getAllProjects();
+      const duplicateName = existingProjects.find(p => 
+        p.name.toLowerCase() === validatedData.name.toLowerCase()
+      );
+      
+      if (duplicateName) {
+        return res.status(409).json({ 
+          message: "Ya existe un proyecto con ese nombre. Por favor, elige un nombre diferente." 
+        });
+      }
+      
       const project = await storage.createProject(validatedData);
       res.status(201).json(project);
     } catch (error) {

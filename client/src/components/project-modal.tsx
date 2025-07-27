@@ -31,16 +31,24 @@ export function ProjectModal({ isOpen, onClose, project }: ProjectModalProps) {
   const createProjectMutation = useMutation({
     mutationFn: async (data: any) => {
       const response = await apiRequest("POST", "/api/projects", data);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to create project");
+      }
       return response.json();
     },
     onSuccess: (newProject) => {
       queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
-      toast({ title: "Project created successfully" });
+      toast({ title: "Proyecto creado exitosamente" });
       setLocation(`/project/${newProject.id}`);
       onClose();
     },
-    onError: () => {
-      toast({ title: "Failed to create project", variant: "destructive" });
+    onError: (error: Error) => {
+      toast({ 
+        title: "Error al crear proyecto", 
+        description: error.message,
+        variant: "destructive" 
+      });
     },
   });
 
