@@ -11,6 +11,13 @@ Default timeline scale: Days (changed from Week to provide more detailed daily v
 
 ## Recent Changes
 
+### Deployment Health Check Fix - COMPLETED (January 27, 2025)
+- Added health check routes for deployment systems at `/`, `/health`, and `/api/health`
+- Root route returns simple "OK" text response for deployment health monitoring
+- Additional health endpoints provide JSON responses with system status information
+- Routes configured to load before static file serving to ensure proper priority
+- Addresses deployment failure issues related to health check timeouts
+
 ### Dark Mode for Gantt Chart - COMPLETED (January 27, 2025)
 - Complete dark mode implementation for frappe-gantt library elements
 - SVG-specific CSS selectors targeting .gantt elements (grid-header, grid-row, arrows, text)

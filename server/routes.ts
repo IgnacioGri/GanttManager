@@ -39,6 +39,29 @@ function calculateDurationFromDates(startDate: string, endDate: string): number 
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Health check routes for deployment
+  app.get('/', (req, res) => {
+    // Simple text response for deployment health checks
+    res.status(200).send('OK');
+  });
+
+  app.get('/health', (req, res) => {
+    res.status(200).json({ 
+      status: 'OK', 
+      message: 'Gantt Chart Management Platform is running',
+      timestamp: new Date().toISOString()
+    });
+  });
+
+  app.get('/api/health', (req, res) => {
+    res.status(200).json({ 
+      status: 'OK', 
+      message: 'Gantt Chart Management Platform is running',
+      timestamp: new Date().toISOString(),
+      environment: app.get('env')
+    });
+  });
+
   // Auth middleware
   await setupAuth(app);
 
