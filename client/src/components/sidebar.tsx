@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { PlusCircle, FolderOpen, Download, ChevronLeft, ChevronRight, Plus, ChevronDown, Trash2, FolderPlus, HelpCircle } from "lucide-react";
+import { PlusCircle, FolderOpen, Download, ChevronLeft, ChevronRight, Plus, ChevronDown, Trash2, FolderPlus, HelpCircle, LogOut } from "lucide-react";
 import { formatDate } from "@/lib/date-utils";
 import type { ProjectWithTasks } from "@shared/schema";
 import TagManager from "./tag-manager";
@@ -73,6 +73,16 @@ export function Sidebar({
           <Button variant="ghost" size="icon" onClick={onShowProjects} title="Browse Projects">
             <FolderOpen className="w-4 h-4" />
           </Button>
+          <div className="pt-4 border-t border-slate-200">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={() => window.location.href = '/api/logout'}
+              title="Cerrar Sesión"
+            >
+              <LogOut className="w-4 h-4" />
+            </Button>
+          </div>
           <Button variant="ghost" size="icon" onClick={onNewTask} disabled={!project} title="Add Task">
             <Plus className="w-4 h-4" />
           </Button>
@@ -184,6 +194,18 @@ export function Sidebar({
                 <HelpCircle className="w-4 h-4 mr-2" />
                 Manual de Usuario
               </Link>
+            </Button>
+          </div>
+
+          {/* Logout section */}
+          <div className="bg-white p-4 rounded-lg shadow-sm border border-slate-200">
+            <Button 
+              variant="outline" 
+              className="w-full justify-start text-red-600 border-red-200 hover:bg-red-50"
+              onClick={() => window.location.href = '/api/logout'}
+            >
+              <LogOut className="w-4 h-4 mr-2" />
+              Cerrar Sesión
             </Button>
           </div>
 

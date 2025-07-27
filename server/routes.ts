@@ -3,6 +3,8 @@ import { createServer, type Server } from "http";
 import multer from "multer";
 import { storage } from "./storage";
 import { insertProjectSchema, insertTaskSchema, insertTagSchema, updateTaskSchema } from "@shared/schema";
+import { setupAuth, isAuthenticated } from "./replitAuth";
+import { setupAuth, isAuthenticated } from "./replitAuth";
 
 const upload = multer({ 
   storage: multer.memoryStorage(),
@@ -37,41 +39,64 @@ function calculateDurationFromDates(startDate: string, endDate: string): number 
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Projects
-  app.get("/api/projects", async (req, res) => {
+  // Auth middleware
+  await setupAuth(app);
+
+  // Auth routes
+  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
-      const projects = await storage.getAllProjects();
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      res.json(user);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
+
+  // Projects
+  app.get("/api/projects", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const projects = await storage.getAllProjects(userId);
       const projectsWithTasks = await Promise.all(
         projects.map(async (project) => {
-          const tasks = await storage.getTasksByProject(project.id);
+          const tasks = await storage.getTasksByProject(project.id, userId);
           return { ...project, tasks };
         })
       );
       res.json(projectsWithTasks);
     } catch (error) {
+      console.error("Error fetching projects:", error);
       res.status(500).json({ message: "Failed to fetch projects" });
     }
   });
 
-  app.get("/api/projects/:id", async (req, res) => {
+  app.get("/api/projects/:id", isAuthenticated, async (req: any, res) => {
     try {
+      const userId = req.user.claims.sub;
       const id = parseInt(req.params.id);
-      const project = await storage.getProjectWithTasks(id);
+      const project = await storage.getProjectWithTasks(id, userId);
       if (!project) {
         return res.status(404).json({ message: "Project not found" });
       }
       res.json(project);
     } catch (error) {
+      console.error("Error fetching project:", error);
       res.status(500).json({ message: "Failed to fetch project" });
     }
   });
 
-  app.post("/api/projects", async (req, res) => {
+  app.post("/api/projects", isAuthenticated, async (req: any, res) => {
     try {
-      const validatedData = insertProjectSchema.parse(req.body);
+      const userId = req.user.claims.sub;
+      const validatedData = insertProjectSchema.parse({
+        ...req.body,
+        userId
+      });
       
-      // Check if project name already exists
-      const existingProjects = await storage.getAllProjects();
+      // Check if project name already exists for this user
+      const existingProjects = await storage.getAllProjects(userId);
       const duplicateName = existingProjects.find(p => 
         p.name.toLowerCase() === validatedData.name.toLowerCase()
       );
@@ -85,30 +110,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const project = await storage.createProject(validatedData);
       res.status(201).json(project);
     } catch (error) {
+      console.error("Error creating project:", error);
       res.status(400).json({ message: "Invalid project data" });
     }
   });
 
-  app.put("/api/projects/:id", async (req, res) => {
+  app.put("/api/projects/:id", isAuthenticated, async (req: any, res) => {
     try {
+      const userId = req.user.claims.sub;
       const id = parseInt(req.params.id);
       const validatedData = insertProjectSchema.partial().parse(req.body);
-      const project = await storage.updateProject(id, validatedData);
+      const project = await storage.updateProject(id, userId, validatedData);
       if (!project) {
         return res.status(404).json({ message: "Project not found" });
       }
       res.json(project);
     } catch (error) {
+      console.error("Error updating project:", error);
       res.status(400).json({ message: "Invalid project data" });
     }
   });
 
-  app.patch("/api/projects/:id", async (req, res) => {
+  app.patch("/api/projects/:id", isAuthenticated, async (req: any, res) => {
     try {
+      const userId = req.user.claims.sub;
       const id = parseInt(req.params.id);
       console.log('PATCH project', id, 'with data:', req.body);
       const validatedData = insertProjectSchema.partial().parse(req.body);
-      const project = await storage.updateProject(id, validatedData);
+      const project = await storage.updateProject(id, userId, validatedData);
       if (!project) {
         return res.status(404).json({ message: "Project not found" });
       }
@@ -120,10 +149,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/projects/:id", async (req, res) => {
+  app.delete("/api/projects/:id", isAuthenticated, async (req: any, res) => {
     try {
+      const userId = req.user.claims.sub;
       const id = parseInt(req.params.id);
-      const deleted = await storage.deleteProject(id);
+      const deleted = await storage.deleteProject(id, userId);
       if (!deleted) {
         return res.status(404).json({ message: "Project not found" });
       }
@@ -134,107 +164,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Tasks
-  app.get("/api/projects/:projectId/tasks", async (req, res) => {
+  app.get("/api/projects/:projectId/tasks", isAuthenticated, async (req: any, res) => {
     try {
+      const userId = req.user.claims.sub;
       const projectId = parseInt(req.params.projectId);
-      const tasks = await storage.getTasksByProject(projectId);
+      const tasks = await storage.getTasksByProject(projectId, userId);
       res.json(tasks);
     } catch (error) {
+      console.error("Error fetching tasks:", error);
       res.status(500).json({ message: "Failed to fetch tasks" });
     }
   });
 
-  app.post("/api/tasks", async (req, res) => {
+  app.post("/api/tasks", isAuthenticated, async (req: any, res) => {
     try {
+      const userId = req.user.claims.sub;
       const validatedData = insertTaskSchema.parse(req.body);
-      const task = await storage.createTask(validatedData);
+      const task = await storage.createTask(validatedData, userId);
       res.status(201).json(task);
     } catch (error) {
+      console.error("Error creating task:", error);
       res.status(400).json({ message: "Invalid task data" });
     }
   });
 
-  app.put("/api/tasks/:id", async (req, res) => {
+  app.put("/api/tasks/:id", isAuthenticated, async (req: any, res) => {
     try {
+      const userId = req.user.claims.sub;
       const id = parseInt(req.params.id);
       const validatedData = updateTaskSchema.parse({ ...req.body, id });
-      const task = await storage.updateTask(validatedData);
+      const task = await storage.updateTask(validatedData, userId);
       if (!task) {
         return res.status(404).json({ message: "Task not found" });
       }
 
-      // Update synced tasks when a reference task is modified
-      const allTasks = await storage.getTasksByProject(task.projectId);
-      console.log("=== SYNC UPDATE DEBUG ===");
-      console.log("Updated task ID:", id);
-      console.log("All tasks in project:", allTasks.map(t => ({ id: t.id, name: t.name, syncedTaskId: t.syncedTaskId, syncType: t.syncType })));
-      
-      const syncedTasks = allTasks.filter(t => 
-        t.syncedTaskId && t.syncedTaskId === id && t.id !== id
-      );
-      console.log("Found synced tasks:", syncedTasks.length);
-
-      for (const syncedTask of syncedTasks) {
-        let updatedData: any = {};
-        
-        switch (syncedTask.syncType) {
-          case "start-start":
-            updatedData = {
-              id: syncedTask.id,
-              startDate: task.startDate,
-              endDate: calculateEndDateFromDuration(task.startDate, syncedTask.duration),
-              skipWeekends: task.skipWeekends,
-              autoAdjustWeekends: task.autoAdjustWeekends
-            };
-            break;
-          case "end-end":
-            updatedData = {
-              id: syncedTask.id,
-              endDate: task.endDate,
-              startDate: calculateStartDateFromEndAndDuration(task.endDate, syncedTask.duration),
-              skipWeekends: task.skipWeekends,
-              autoAdjustWeekends: task.autoAdjustWeekends
-            };
-            break;
-          case "start-end-together":
-            const newDuration = calculateDurationFromDates(task.startDate, task.endDate);
-            updatedData = {
-              id: syncedTask.id,
-              startDate: task.startDate,
-              endDate: task.endDate,
-              duration: newDuration,
-              skipWeekends: task.skipWeekends,
-              autoAdjustWeekends: task.autoAdjustWeekends
-            };
-            break;
-        }
-        
-        if (Object.keys(updatedData).length > 1) { // More than just id
-          console.log("Updating synced task:", syncedTask.name, "with data:", updatedData);
-          await storage.updateTask(updatedData);
-          console.log("✅ Synced task updated successfully");
-        }
-      }
-
       res.json(task);
     } catch (error) {
-      console.error('Task update error:', error);
+      console.error("Error updating task:", error);
       res.status(400).json({ message: "Invalid task data" });
     }
   });
 
-  app.delete("/api/tasks/:id", async (req, res) => {
+  app.delete("/api/tasks/:id", isAuthenticated, async (req: any, res) => {
     try {
+      const userId = req.user.claims.sub;
       const id = parseInt(req.params.id);
       
-      // First, get the task to know which project it belongs to
-      const taskToDelete = await storage.getTask(id);
+      // First, get the task to verify it belongs to user
+      const taskToDelete = await storage.getTask(id, userId);
       if (!taskToDelete) {
         return res.status(404).json({ message: "Task not found" });
       }
 
       // Get all tasks in the project to fix dependencies
-      const allTasks = await storage.getTasksByProject(taskToDelete.projectId);
+      const allTasks = await storage.getTasksByProject(taskToDelete.projectId, userId);
       
       // Remove task ID from dependencies of other tasks
       const dependentTasks = allTasks.filter(task => 
@@ -247,11 +230,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await storage.updateTask({
           id: dependentTask.id,
           dependencies: updatedDependencies
-        });
+        }, userId);
       }
       
       // Delete the task
-      const deleted = await storage.deleteTask(id);
+      const deleted = await storage.deleteTask(id, userId);
       if (!deleted) {
         return res.status(404).json({ message: "Task not found" });
       }
@@ -284,50 +267,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Tags
-  app.get("/api/projects/:projectId/tags", async (req, res) => {
+  app.get("/api/projects/:projectId/tags", isAuthenticated, async (req: any, res) => {
     try {
+      const userId = req.user.claims.sub;
       const projectId = parseInt(req.params.projectId);
-      const tags = await storage.getProjectTags(projectId);
+      const tags = await storage.getProjectTags(projectId, userId);
       res.json(tags);
     } catch (error) {
+      console.error("Error fetching tags:", error);
       res.status(500).json({ message: "Failed to fetch tags" });
     }
   });
 
-  app.post("/api/projects/:projectId/tags", async (req, res) => {
+  app.post("/api/projects/:projectId/tags", isAuthenticated, async (req: any, res) => {
     try {
+      const userId = req.user.claims.sub;
       const projectId = parseInt(req.params.projectId);
       const validatedData = insertTagSchema.parse({ ...req.body, projectId });
-      const tag = await storage.createTag(validatedData);
+      const tag = await storage.createTag(validatedData, userId);
       res.status(201).json(tag);
     } catch (error) {
+      console.error("Error creating tag:", error);
       res.status(400).json({ message: "Invalid tag data" });
     }
   });
 
-  app.put("/api/tags/:id", async (req, res) => {
+  app.put("/api/tags/:id", isAuthenticated, async (req: any, res) => {
     try {
+      const userId = req.user.claims.sub;
       const id = parseInt(req.params.id);
       const validatedData = insertTagSchema.partial().parse(req.body);
-      const tag = await storage.updateTag(id, validatedData);
+      const tag = await storage.updateTag(id, userId, validatedData);
       if (!tag) {
         return res.status(404).json({ message: "Tag not found" });
       }
       res.json(tag);
     } catch (error) {
+      console.error("Error updating tag:", error);
       res.status(400).json({ message: "Invalid tag data" });
     }
   });
 
-  app.delete("/api/tags/:id", async (req, res) => {
+  app.delete("/api/tags/:id", isAuthenticated, async (req: any, res) => {
     try {
+      const userId = req.user.claims.sub;
       const id = parseInt(req.params.id);
-      const success = await storage.deleteTag(id);
+      const success = await storage.deleteTag(id, userId);
       if (!success) {
         return res.status(404).json({ message: "Tag not found" });
       }
       res.status(204).send();
     } catch (error) {
+      console.error("Error deleting tag:", error);
       res.status(500).json({ message: "Failed to delete tag" });
     }
   });

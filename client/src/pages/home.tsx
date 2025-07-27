@@ -12,6 +12,7 @@ import { ProjectModal } from "@/components/project-modal";
 import { exportToExcel } from "@/lib/excel-export";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
+import { isUnauthorizedError } from "@/lib/authUtils";
 import type { ProjectWithTasks, Task } from "@shared/schema";
 
 export default function Home() {
