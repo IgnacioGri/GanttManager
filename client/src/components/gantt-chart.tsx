@@ -125,6 +125,42 @@ export function GanttChart({ project, timelineScale, onEditTask, onAddComment, o
     }, 50);
   };
 
+  // Function to apply dark mode to Gantt chart
+  const applyDarkModeToGantt = () => {
+    if (!ganttRef.current) return;
+    
+    // Get computed background color from CSS variables
+    const computedStyle = getComputedStyle(document.documentElement);
+    const backgroundColor = computedStyle.getPropertyValue('--background').trim();
+    const bgColor = `hsl(${backgroundColor})`;
+    
+    // Force background color on all div elements within Gantt
+    const divElements = ganttRef.current.querySelectorAll('div');
+    divElements.forEach(element => {
+      if (element instanceof HTMLElement) {
+        element.style.setProperty('background-color', bgColor, 'important');
+        element.style.setProperty('background', bgColor, 'important');
+      }
+    });
+    
+    // Apply to SVG elements
+    const svgElements = ganttRef.current.querySelectorAll('svg');
+    svgElements.forEach(element => {
+      if (element instanceof SVGElement) {
+        element.style.setProperty('background-color', bgColor, 'important');
+        element.style.setProperty('background', bgColor, 'important');
+      }
+    });
+    
+    // Apply to main container
+    if (ganttRef.current.firstChild instanceof HTMLElement) {
+      ganttRef.current.firstChild.style.setProperty('background-color', bgColor, 'important');
+    }
+    
+    // Apply to the container itself
+    ganttRef.current.style.setProperty('background-color', bgColor, 'important');
+  };
+
   // Function to create/recreate the Gantt chart
   const createGanttChart = useCallback(() => {
     if (!ganttRef.current || !project?.tasks.length) return;
@@ -174,6 +210,12 @@ export function GanttChart({ project, timelineScale, onEditTask, onAddComment, o
       console.log('Creating Gantt instance with options:', ganttOptions);
       ganttInstance.current = new window.Gantt(ganttRef.current, tasks, ganttOptions);
       console.log('✅ Gantt instance created successfully');
+      
+      // Apply dark mode styling after creation
+      setTimeout(() => {
+        applyDarkModeToGantt();
+        applyTaskColors();
+      }, 100);
     } catch (error) {
       console.error('❌ Error creating Gantt chart:', error);
     }
@@ -455,8 +497,8 @@ export function GanttChart({ project, timelineScale, onEditTask, onAddComment, o
         )}
         
         {/* Gantt chart container */}
-        <div className={`${isFullScreen ? 'ml-0' : isCollapsed ? 'ml-80' : 'ml-[480px]'} h-full transition-all duration-300`}>
-          <div ref={ganttRef} className="gantt-container h-full overflow-auto"></div>
+        <div className={`${isFullScreen ? 'ml-0' : isCollapsed ? 'ml-80' : 'ml-[480px]'} h-full transition-all duration-300 bg-background`}>
+          <div ref={ganttRef} className="gantt-container h-full overflow-auto bg-background"></div>
         </div>
       </div>
     </div>

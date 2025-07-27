@@ -117,10 +117,96 @@
 /* Gantt Chart Styles */
 .gantt-container {
   font-family: inherit;
+  background-color: hsl(var(--background)) !important;
+}
+
+.dark .gantt-container {
+  background-color: hsl(var(--background)) !important;
+}
+
+/* Force background on all Gantt elements */
+.gantt-container div,
+.gantt-container .gantt,
+.gantt-container .gantt-chart,
+.gantt-container .gantt-main {
+  background-color: hsl(var(--background)) !important;
+}
+
+.dark .gantt-container div,
+.dark .gantt-container .gantt,
+.dark .gantt-container .gantt-chart,
+.dark .gantt-container .gantt-main {
+  background-color: hsl(var(--background)) !important;
 }
 
 .gantt-container .gantt {
   overflow: visible !important;
+  background-color: hsl(var(--background)) !important;
+}
+
+.dark .gantt-container .gantt {
+  background-color: hsl(var(--background)) !important;
+}
+
+/* Gantt chart main area */
+.gantt-container .gantt-chart {
+  background-color: hsl(var(--background)) !important;
+}
+
+.dark .gantt-container .gantt-chart {
+  background-color: hsl(var(--background)) !important;
+}
+
+.gantt-container svg {
+  background-color: hsl(var(--background)) !important;
+}
+
+.dark .gantt-container svg {
+  background-color: hsl(var(--background)) !important;
+}
+
+/* Grid lines */
+.gantt-container .grid-line {
+  stroke: hsl(var(--border)) !important;
+}
+
+.dark .gantt-container .grid-line {
+  stroke: hsl(var(--border)) !important;
+}
+
+/* Date text */
+.gantt-container .gantt-date {
+  fill: hsl(var(--foreground)) !important;
+}
+
+.dark .gantt-container .gantt-date {
+  fill: hsl(var(--foreground)) !important;
+}
+
+/* Very specific selector to override Gantt library background */
+.gantt-container > div {
+  background-color: hsl(var(--background)) !important;
+}
+
+.dark .gantt-container > div {
+  background-color: hsl(var(--background)) !important;
+}
+
+.gantt-container > div > div {
+  background-color: hsl(var(--background)) !important;
+}
+
+.dark .gantt-container > div > div {
+  background-color: hsl(var(--background)) !important;
+}
+
+/* Override any inline styles */
+.gantt-container [style*="background"] {
+  background-color: hsl(var(--background)) !important;
+}
+
+.dark .gantt-container [style*="background"] {
+  background-color: hsl(var(--background)) !important;
 }
 
 .gantt-container .gantt-task {
@@ -214,10 +300,14 @@
 
 /* Dependency arrows styling */
 .gantt-container .gantt-dependency-arrow {
-  stroke: #f1f5f9 !important;
+  stroke: hsl(var(--border)) !important;
   stroke-width: 1px !important;
   stroke-dasharray: 4,4 !important;
   opacity: 0.2 !important;
+}
+
+.dark .gantt-container .gantt-dependency-arrow {
+  stroke: hsl(var(--border)) !important;
 }
 
 /* Weekend and holiday styling */
@@ -240,13 +330,21 @@
 }
 
 .gantt-container .weekend-column .gantt-date {
-  color: #94a3b8 !important;
+  color: hsl(var(--muted-foreground)) !important;
   font-weight: 400 !important;
 }
 
+.dark .gantt-container .weekend-column .gantt-date {
+  color: hsl(var(--muted-foreground)) !important;
+}
+
 .gantt-container .holiday-column .gantt-date {
-  color: #dc2626 !important;
+  color: hsl(var(--destructive)) !important;
   font-weight: 500 !important;
+}
+
+.dark .gantt-container .holiday-column .gantt-date {
+  color: hsl(var(--destructive)) !important;
 }
 
 /* Progress bars styling */

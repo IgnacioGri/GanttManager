@@ -194,8 +194,8 @@ export function Sidebar({
           )}
 
           {/* Help Section */}
-          <div className="bg-white p-4 rounded-lg shadow-sm border border-slate-200">
-            <h3 className="text-sm uppercase tracking-wide text-slate-500 mb-3">AYUDA</h3>
+          <div className="bg-card p-4 rounded-lg shadow-sm border border-border">
+            <h3 className="text-sm uppercase tracking-wide text-muted-foreground mb-3">AYUDA</h3>
             <Button 
               variant="outline" 
               className="w-full justify-start" 
