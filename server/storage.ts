@@ -308,14 +308,26 @@ export class DatabaseStorage implements IStorage {
     return result.rowCount > 0;
   }
 
-  // Notification methods
-  async getAllTasksForNotifications(): Promise<(Task & { userId: string; projectId: number })[]> {
-    const tasksWithUserInfo = await db
-      .select()
-      .from(tasks)
-      .where(lt(tasks.progress, 100)); // Only tasks not completed
-    
-    return tasksWithUserInfo as (Task & { userId: string; projectId: number })[];
+  // Notification methods (simplified version)
+  async getAllTasksForNotifications(): Promise<any[]> {
+    try {
+      const result = await db
+        .select({
+          id: tasks.id,
+          name: tasks.name,
+          endDate: tasks.endDate,
+          progress: tasks.progress,
+          projectId: tasks.projectId,
+          userId: tasks.userId,
+        })
+        .from(tasks)
+        .where(lt(tasks.progress, 100));
+      
+      return result;
+    } catch (error) {
+      console.error("Error getting tasks for notifications:", error);
+      return [];
+    }
   }
 }
 

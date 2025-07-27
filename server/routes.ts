@@ -179,7 +179,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/tasks", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const validatedData = insertTaskSchema.parse(req.body);
+      const validatedData = insertTaskSchema.parse({
+      ...req.body,
+      userId: req.user?.claims?.sub // Add userId from authenticated user
+    });
       const task = await storage.createTask(validatedData, userId);
       res.status(201).json(task);
     } catch (error) {

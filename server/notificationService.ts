@@ -94,5 +94,24 @@ export function setupDailyNotifications(): void {
 // Función para pruebas manuales
 export async function testNotifications(): Promise<void> {
   console.log("🧪 Testing notification system...");
-  await checkTaskDeadlines();
+  
+  try {
+    // Enviar un email de prueba directo
+    const testEmailParams = generateTaskDueEmail(
+      'grimoldiignacio@gmail.com',
+      'Tarea de Prueba',
+      'Proyecto de Prueba',
+      '28/01/25',
+      1
+    );
+    
+    const emailSent = await sendEmail(testEmailParams);
+    if (emailSent) {
+      console.log("✅ Test email sent successfully to grimoldiignacio@gmail.com");
+    } else {
+      console.log("❌ Failed to send test email");
+    }
+  } catch (error) {
+    console.error("❌ Error in test notifications:", error);
+  }
 }
