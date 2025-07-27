@@ -127,6 +127,25 @@ export function Sidebar({
                 <Plus className="w-4 h-4 mr-2" />
                 Add New Task
               </Button>
+              <Button 
+                variant="outline" 
+                className="w-full justify-start text-blue-600 border-blue-200 hover:bg-blue-50"
+                onClick={async () => {
+                  try {
+                    const response = await fetch('/api/test-notifications', { method: 'POST' });
+                    if (response.ok) {
+                      alert('Notificaciones de prueba enviadas! Revisa tu email.');
+                    } else {
+                      alert('Error al enviar notificaciones de prueba');
+                    }
+                  } catch (error) {
+                    alert('Error al enviar notificaciones');
+                  }
+                }}
+              >
+                <HelpCircle className="w-4 h-4 mr-2" />
+                Test Email Notifications
+              </Button>
             </div>
           </div>
 

@@ -15,7 +15,7 @@ import {
   type ProjectWithTasks 
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and } from "drizzle-orm";
+import { eq, and, lt } from "drizzle-orm";
 
 export interface IStorage {
   // User operations
@@ -43,6 +43,9 @@ export interface IStorage {
   createTag(tag: InsertTag, userId: string): Promise<Tag>;
   updateTag(id: number, userId: string, tag: Partial<InsertTag>): Promise<Tag | undefined>;
   deleteTag(id: number, userId: string): Promise<boolean>;
+  
+  // Notifications
+  getAllTasksForNotifications(): Promise<(Task & { userId: string; projectId: number })[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -303,6 +306,35 @@ export class DatabaseStorage implements IStorage {
     
     const result = await db.delete(tags).where(eq(tags.id, id));
     return result.rowCount > 0;
+  }
+
+  // Notification methods
+  async getAllTasksForNotifications(): Promise<(Task & { userId: string; projectId: number })[]> {
+    const tasksWithUserInfo = await db
+      .select({
+        id: tasks.id,
+        name: tasks.name,
+        startDate: tasks.startDate,
+        endDate: tasks.endDate,
+        progress: tasks.progress,
+        description: tasks.description,
+        dependencies: tasks.dependencies,
+        tags: tasks.tags,
+        attachments: tasks.attachments,
+        comments: tasks.comments,
+        skipWeekends: tasks.skipWeekends,
+        autoAdjustWeekends: tasks.autoAdjustWeekends,
+        duration: tasks.duration,
+        syncType: tasks.syncType,
+        createdAt: tasks.createdAt,
+        updatedAt: tasks.updatedAt,
+        userId: tasks.userId,
+        projectId: tasks.projectId,
+      })
+      .from(tasks)
+      .where(lt(tasks.progress, 100)); // Only tasks not completed
+    
+    return tasksWithUserInfo as (Task & { userId: string; projectId: number })[];
   }
 }
 

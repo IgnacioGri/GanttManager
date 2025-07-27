@@ -4,7 +4,7 @@ import multer from "multer";
 import { storage } from "./storage";
 import { insertProjectSchema, insertTaskSchema, insertTagSchema, updateTaskSchema } from "@shared/schema";
 import { setupAuth, isAuthenticated } from "./replitAuth";
-import { setupAuth, isAuthenticated } from "./replitAuth";
+import { setupDailyNotifications, testNotifications } from "./notificationService";
 
 const upload = multer({ 
   storage: multer.memoryStorage(),
@@ -322,6 +322,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to delete tag" });
     }
   });
+
+  // Test notification endpoint (for development)
+  app.post("/api/test-notifications", isAuthenticated, async (req: any, res) => {
+    try {
+      await testNotifications();
+      res.json({ message: "Test notifications sent successfully" });
+    } catch (error) {
+      console.error("Error testing notifications:", error);
+      res.status(500).json({ message: "Failed to test notifications" });
+    }
+  });
+
+  // Initialize daily notifications system
+  setupDailyNotifications();
+  console.log("📧 Daily notification system initialized");
 
   const httpServer = createServer(app);
   return httpServer;
