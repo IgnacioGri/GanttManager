@@ -311,26 +311,7 @@ export class DatabaseStorage implements IStorage {
   // Notification methods
   async getAllTasksForNotifications(): Promise<(Task & { userId: string; projectId: number })[]> {
     const tasksWithUserInfo = await db
-      .select({
-        id: tasks.id,
-        name: tasks.name,
-        startDate: tasks.startDate,
-        endDate: tasks.endDate,
-        progress: tasks.progress,
-        description: tasks.description,
-        dependencies: tasks.dependencies,
-        tags: tasks.tags,
-        attachments: tasks.attachments,
-        comments: tasks.comments,
-        skipWeekends: tasks.skipWeekends,
-        autoAdjustWeekends: tasks.autoAdjustWeekends,
-        duration: tasks.duration,
-        syncType: tasks.syncType,
-        createdAt: tasks.createdAt,
-        updatedAt: tasks.updatedAt,
-        userId: tasks.userId,
-        projectId: tasks.projectId,
-      })
+      .select()
       .from(tasks)
       .where(lt(tasks.progress, 100)); // Only tasks not completed
     
